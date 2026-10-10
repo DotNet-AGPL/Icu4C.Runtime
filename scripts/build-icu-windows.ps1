@@ -55,7 +55,6 @@ try {
   $Source = Join-Path $WorkDir "icu/source"
 
   $Solution = Join-Path $Source "allinone/allinone.sln"
-  Write-Host "Building $Solution ($Platform, Release) ..."
 
   # Locate MSBuild (from VS install) if not on PATH.
   $MSBuild = "msbuild"
@@ -66,17 +65,41 @@ try {
     }
     if ([string]::IsNullOrEmpty($MSBuild)) { throw "MSBuild not found. Install Visual Studio with the C++ toolset." }
   }
+
+  # For non-x64 targets ICU needs x64 host tools (pkgdata/genrb/...) to generate the data DLL,
+  # so build the x64 tools first.
+  if ($Platform -ne "x64") {
+    Write-Host "Pass 1: building x64 host tools (Release|x64) ..."
+    & $MSBuild $Solution /m /p:Configuration=Release /p:Platform=x64
+    if ($LASTEXITCODE -ne 0) { throw "ICU host-tools build failed (exit $LASTEXITCODE)" }
+  }
+
+  Write-Host "Building $Solution ($Platform, Release) ..."
   & $MSBuild $Solution /m /p:Configuration=Release /p:Platform=$Platform
+  if ($LASTEXITCODE -ne 0) { throw "ICU build failed (exit $LASTEXITCODE)" }
 
   New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
-  # Built output lands in <source>/bin64 or binARM64
-  $BinDir = Get-ChildItem -Path $Source -Directory -Filter "bin*" |
-            Where-Object { Get-ChildItem $_.FullName -Filter "icuuc$IcuMajor.dll" -ErrorAction SilentlyContinue } |
-            Select-Object -First 1
-  if (-not $BinDir) { throw "Could not locate built ICU DLLs under $Source" }
+  # ICU's Windows build emits DLLs into <workdir>/icu/bin64 (x64), binARM64 (ARM64), bin (Win32).
+  $BinDirName = switch ($Platform) {
+    "x64"   { "bin64" }
+    "ARM64" { "binARM64" }
+    "Win32" { "bin" }
+    default { "bin$Platform" }
+  }
+  $BinDir = Join-Path (Join-Path $WorkDir "icu") $BinDirName
+  if (-not (Test-Path (Join-Path $BinDir "icuuc$IcuMajor.dll"))) {
+    $found = Get-ChildItem -Path (Join-Path $WorkDir "icu") -Directory -Filter "bin*" -ErrorAction SilentlyContinue |
+             Where-Object { $_.Name -notmatch 'uwp' } |
+             Where-Object { Test-Path (Join-Path $_.FullName "icuuc$IcuMajor.dll") } |
+             Select-Object -First 1
+    if ($found) { $BinDir = $found.FullName }
+  }
+  if (-not (Test-Path (Join-Path $BinDir "icuuc$IcuMajor.dll"))) {
+    throw "Could not locate built ICU DLLs under $WorkDir"
+  }
 
   foreach ($name in @("icuuc$IcuMajor.dll", "icuin$IcuMajor.dll", "icudt$IcuMajor.dll")) {
-    $src = Join-Path $BinDir.FullName $name
+    $src = Join-Path $BinDir $name
     if (Test-Path $src) { Copy-Item $src $OutDir -Force }
     else { Write-Warning "Not found: $src" }
   }
