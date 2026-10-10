@@ -168,10 +168,10 @@ dotnet pack src/Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj -c Release -o nupkg
 
 ## 9. 版本方案
 
-- 包版本：`{icu-major}.{icu-minor}.{base}[.{revision}]`，如 `77.1.0`、`77.1.0.1`、`77.1.0.2`。
+- 包版本：`{icu-major}.{icu-minor}.{revision}`，如 `77.1.1`、`77.1.2`、`77.1.3`（前两段对应 ICU 版本，第三段为打包修订，从 1 开始）。
 - 定义于 `Directory.Build.props` 的 `<IcuPackageVersion>`，包与测试项目共用。
-- NuGet 支持 4 段版本；**第 4 段不要用 0**（`77.1.0.0` 归一化为 `77.1.0`）。
-- ICU 版本（`_IcuVersion`，用于 `AppLocalIcu` 与库文件名）与包版本相互独立。
+- ICU 共享库自身版本为 `77.1`（`libicu*.so.77.1`、`libicu*.77.1.dylib`、`icuuc77.dll`），**包版本不改变库文件名**。
+- ICU 版本（`_IcuVersion`，用于 `AppLocalIcu`）与包版本相互独立。
 
 ---
 

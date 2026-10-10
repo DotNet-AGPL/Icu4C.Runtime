@@ -31,7 +31,7 @@ Universal (works on every RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.0" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.1" />
 </ItemGroup>
 ```
 
@@ -39,7 +39,7 @@ Slim (per RID — **do not reference both a slim package and the universal one**
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.0" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.1" />
 </ItemGroup>
 ```
 
@@ -47,8 +47,8 @@ For several RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.0" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.0" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.1" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.1" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -128,15 +128,17 @@ AOT, on `readelf -d` showing an `$ORIGIN` runpath.
 
 ## Versioning
 
-Package version is `{icu-major}.{icu-minor}.{base}[.{revision}]`:
+Package version is `{icu-major}.{icu-minor}.{revision}` — the first two parts track the ICU version,
+the third is the packaging revision (starts at 1):
 
-- `77.1.0` — first release for ICU 77.1
-- `77.1.0.1`, `77.1.0.2`, … — bugfix / repack releases of the **same** ICU 77.1
+- `77.1.1` — first release for ICU 77.1
+- `77.1.2`, `77.1.3`, … — bugfix / repack releases of the **same** ICU 77.1
 
 The version is defined once in `Directory.Build.props` as `<IcuPackageVersion>`; all packages and the
 test projects consume it.
 
-- NuGet supports 4-part versions. **Do not use a zero 4th part** (`77.1.0.0` normalizes to `77.1.0`).
+- The ICU shared libraries keep their own version (`77.1` → `libicu*.so.77.1`, `libicu*.77.1.dylib`,
+  `icuuc77.dll`); the package version does not change the `.so`/`.dll` names.
 - The ICU version used for `AppLocalIcu` is independent: it lives in `_IcuVersion` inside
   `buildTransitive/_IcuRuntimeCore.targets` and must match the bundled binaries' names.
 

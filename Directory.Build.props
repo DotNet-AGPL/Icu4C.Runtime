@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <!-- Single source of truth for the NuGet package version.
-         Scheme: <icu-major>.<icu-minor>.<base>  plus an optional 4th "revision" part for
-         bugfix / repack releases of the SAME ICU version:
-             ICU 77.1 first release : 77.1.0
-             then small fixes       : 77.1.0.1, 77.1.0.2, ...
+         Scheme: <icu-major>.<icu-minor>.<revision> — the first two parts track the ICU
+         version, the third is the packaging revision (starts at 1):
+             ICU 77.1 release 1 : 77.1.1
+             then fixes         : 77.1.2, 77.1.3, ...
          Notes:
-           - NuGet supports 4-part versions (Major.Minor.Patch.Revision).
-           - Do NOT use a zero 4th part: 77.1.0.0 normalizes to 77.1.0.
-           - The ICU version used for AppLocalIcu stays independent (build*/Icu4C.Runtime.targets). -->
-    <IcuPackageVersion Condition="'$(IcuPackageVersion)' == ''">77.1.0</IcuPackageVersion>
+           - The ICU shared library keeps its own version (77.1 -> libicu*.so.77.1); the package
+             version does NOT change the .so name.
+           - The ICU version used for AppLocalIcu stays independent (buildTransitive/_IcuRuntimeCore.targets). -->
+    <IcuPackageVersion Condition="'$(IcuPackageVersion)' == ''">77.1.1</IcuPackageVersion>
   </PropertyGroup>
 
 </Project>
