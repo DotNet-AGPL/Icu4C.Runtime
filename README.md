@@ -89,6 +89,29 @@ To avoid the extra download, reference the specific `Icu4C.Runtime.<rid>` packag
 `linux-x64`, `linux-arm64`, `linux-musl-x64`, `linux-musl-arm64`, `win-x64`, `win-arm64`,
 `osx-x64`, `osx-arm64`.
 
+## Platform notes
+
+### Linux (glibc)
+
+The glibc libraries are built on an **AlmaLinux 8 (glibc 2.28)** baseline with `gcc-toolset-13` and
+the C++ runtime linked statically. They load on Debian 11+, Ubuntu 20.04+, RHEL/Alma/Rocky 8-9,
+Amazon Linux 2/2023, Debian 12, etc. — required glibc is **2.28**, and there is no
+`libstdc++.so.6` / `libgcc_s.so.1` dependency.
+
+### Linux (musl / Alpine)
+
+The musl libraries have no version floor and no `libstdc++`/`libgcc_s` dependency — they only need
+musl. Note that the official **.NET Alpine images set `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true`**
+by default, so ICU is not used unless you override it:
+
+```dockerfile
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+```
+
+### Windows
+
+No VC++ Redistributable is required — the MSVC runtime is bundled app-locally next to the ICU DLLs.
+
 ## Warnings
 
 | Code | Meaning |
@@ -112,7 +135,10 @@ pulled in transitively by the meta package).
 
 ICU binaries are produced per RID and placed under `runtimes/<rid>/native/`.
 
-- Linux (glibc/musl), from source: `scripts/build-icu-linux.sh <icu-version> <rid>`
+- Linux (glibc/musl), from source: `scripts/build-icu-linux.sh <icu-version> <rid>` (the glibc
+  artifacts are built on an old glibc baseline — AlmaLinux 8 / glibc 2.28 — with the C++ runtime
+  statically linked, and `patchelf` is used to make the libraries resolve their siblings via
+  `$ORIGIN`; see *Platform notes*)
 - Linux quick extraction (validation only): `scripts/extract-icu-linux.sh <rid> <ubuntu-version> <pkg>`
 - Windows: `scripts/build-icu-windows.ps1 <icu-version> <rid>` (also stages the app-local MSVC
   runtime DLLs next to the ICU DLLs, and fails if the runtime closure is incomplete)

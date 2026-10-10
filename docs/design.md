@@ -117,7 +117,7 @@ Icu4C.Runtime/
 
 ## 7. 原生库构建脚本
 
-- `build-icu-linux.sh <icu-version> <rid>`：glibc 原生化或两段式交叉（先建 x64 宿主工具，再 `--with-cross-build`）；musl 在 Alpine 原生编译。支持 `ICU_CACHE_DIR`、`ICU_GH_PROXY`。
+- `build-icu-linux.sh <icu-version> <rid>`：glibc 在 **AlmaLinux 8（glibc 2.28）+ gcc-toolset-13** 的旧基线容器中构建（压低 glibc 地板）；musl 在 Alpine 原生编译。两者均以 `-static-libstdc++ -static-libgcc` 静态链 C++ 运行库；构建后用 **`patchelf`** 把库间 NEEDED 改为精确文件名（`libicu*.so.<ver>`）并设 `$ORIGIN` rpath（musl 不做 SONAME 匹配，否则加载失败）。支持 `ICU_CACHE_DIR`、`ICU_GH_PROXY`。
 - `build-icu-windows.ps1 <icu-version> <rid>`：VS/MSBuild 构建 `allinone.sln`；非 x64 先构建 x64 宿主工具；产物从 `<workdir>/icu/bin64|binARM64` 拷贝。随后把 **VC++ 2015-2022 运行库**（`msvcp140*.dll`、`vcruntime140*.dll`）从 VS Redist 目录一并放入 `runtimes/<rid>/native/`，并校验 ICU DLL 导入的运行库均已就位（否则构建失败）。
 - `build-icu-macos.sh <icu-version> <rid>`：`runConfigureICU MacOSX` + `install_name_tool` 改写为 `@loader_path/...`。
 - `extract-icu-linux.sh`：仅用于快速验证。
@@ -174,6 +174,9 @@ Icu4C.Runtime/
 - restore 会下载全部平台包（NuGet 不按 RID 过滤依赖）；发布产物按 RID 过滤。
 - Windows 上 ICU DLL 采用 `/MD`（DLL 版 CRT），依赖 `msvcp140.dll`/`vcruntime140*.dll`；这些运行库随包内置（app-local），消费方**无需**安装 VC++ 可再发行组件。
 - AppLocalIcu 在 Windows 只用「应用目录 + System32」解析：自包含/RID 发布把 DLL 平铺到根目录；便携发布由运行时经原生搜索目录解析 `runtimes/<rid>/native/`（已验证可用）。
+- Linux(glibc) 在 **AlmaLinux 8（glibc 2.28）** 基线构建：要求 glibc ≥2.28，覆盖 Debian 11-12、Ubuntu 20.04+、RHEL/Alma/Rocky 8-9、Amazon Linux 2/2023。
+- Linux 均 `-static-libstdc++ -static-libgcc`（去除 `libstdc++`/`libgcc_s` 依赖）；并用 `patchelf` 让库间依赖引用**精确文件名** + `$ORIGIN` rpath（musl 不做 SONAME 匹配，否则报 `Failed to load app-local ICU`）。
+- Alpine 官方 .NET 镜像默认 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true`，需覆盖为 `false` 才会启用 ICU。
 - 许可：项目 AGPL-3.0-only；ICU 二进制为 Unicode-3.0，再分发须保留声明；Windows 包内置的 MS VC++ 运行库遵循微软许可（见 `THIRD-PARTY-NOTICES.md`）。
 
 ---
