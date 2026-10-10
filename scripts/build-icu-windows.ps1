@@ -46,9 +46,18 @@ $WorkDir = Join-Path $env:TEMP ("icu-build-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
 
 try {
-  Write-Host "Downloading ICU $IcuVersion : $Url"
+  $CacheDir = $env:ICU_CACHE_DIR
   $Tgz = Join-Path $WorkDir "icu.tgz"
-  Invoke-WebRequest -Uri $Url -OutFile $Tgz
+  if (-not [string]::IsNullOrEmpty($CacheDir)) {
+    New-Item -ItemType Directory -Force -Path $CacheDir | Out-Null
+    $Tgz = Join-Path $CacheDir $Asset
+  }
+  if (Test-Path $Tgz) {
+    Write-Host "Using cached $Asset"
+  } else {
+    Write-Host "Downloading ICU $IcuVersion : $Url"
+    Invoke-WebRequest -Uri $Url -OutFile $Tgz
+  }
 
   Write-Host "Extracting..."
   tar xzf $Tgz -C $WorkDir

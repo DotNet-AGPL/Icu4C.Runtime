@@ -53,9 +53,21 @@ is_native() {
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "${WORK_DIR}"' EXIT
 
-echo "Downloading ICU ${ICU_VERSION}: ${URL}"
-curl -fsSL --retry 3 -o "${WORK_DIR}/icu.tgz" "${URL}"
-tar xzf "${WORK_DIR}/icu.tgz" -C "${WORK_DIR}"
+# Optional download cache (ICU_CACHE_DIR) to reuse the source tarball across runs.
+CACHE_DIR="${ICU_CACHE_DIR:-}"
+TGZ="${WORK_DIR}/icu.tgz"
+if [ -n "${CACHE_DIR}" ]; then
+  mkdir -p "${CACHE_DIR}"
+  TGZ="${CACHE_DIR}/${ASSET}"
+fi
+
+if [ -f "${TGZ}" ]; then
+  echo "Using cached ${ASSET}"
+else
+  echo "Downloading ICU ${ICU_VERSION}: ${URL}"
+  curl -fsSL --retry 3 -o "${TGZ}" "${URL}"
+fi
+tar xzf "${TGZ}" -C "${WORK_DIR}"
 SOURCE="${WORK_DIR}/icu/source"
 
 CONFIGURE_ARGS=(--with-data-packaging=dll --disable-samples --disable-tests)
