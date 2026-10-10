@@ -123,7 +123,7 @@ try {
   $vsArch = switch ($Platform) { "x64" { "x64" } "ARM64" { "arm64" } "Win32" { "x86" } default { $Platform } }
   $runtimeBaseNames  = @("msvcp140", "msvcp140_1", "msvcp140_2", "msvcp140_atomic_wait",
                          "msvcp140_codecvt_ids", "vcruntime140", "vcruntime140_1")
-  $requiredBaseNames = @("msvcp140", "vcruntime140", "vcruntime140_1")
+  $requiredBaseNames = @("msvcp140", "vcruntime140")
 
   $vsRoot = $null
   if (Test-Path $vswhere) {
@@ -180,11 +180,31 @@ try {
   }
   Write-Host "  toolset=$toolsetVer  source=$crtDir  msvcp140=$msvcpVer"
 
+  # Copy only DLLs whose PE architecture matches the target (some redist folders, e.g. the
+  # ARM64 one, ship an x64-only vcruntime140_1.dll that must not be bundled into an ARM64 app).
+  function Get-PEMachine([string]$Path) {
+    $fs = [System.IO.File]::OpenRead($Path)
+    try {
+      $br = New-Object System.IO.BinaryReader($fs)
+      $fs.Position = 0x3C; $peOff = $br.ReadInt32()
+      $fs.Position = $peOff + 4; return $br.ReadUInt16()
+    } finally { $fs.Dispose() }
+  }
+  $expectedMachine = switch ($vsArch) { "x64" { 0x8664 } "arm64" { 0xAA64 } "x86" { 0x14C } default { 0 } }
+
   foreach ($b in $runtimeBaseNames) {
     $src = Join-Path $crtDir "$b.dll"
-    if (Test-Path $src) { Copy-Item $src $OutDir -Force }
-    elseif ($requiredBaseNames -contains $b) { throw "Missing required MSVC runtime DLL: $src" }
-    else { Write-Warning "Optional MSVC runtime DLL not found: $b.dll" }
+    if (-not (Test-Path $src)) {
+      if ($requiredBaseNames -contains $b) { throw "Missing required MSVC runtime DLL: $src" }
+      Write-Warning "Optional MSVC runtime DLL not found: $b.dll"
+      continue
+    }
+    $machine = Get-PEMachine $src
+    if ($expectedMachine -ne 0 -and $machine -ne $expectedMachine) {
+      Write-Warning ("Skipping {0}.dll: architecture mismatch (expected 0x{1:X}, got 0x{2:X})." -f $b, $expectedMachine, $machine)
+      continue
+    }
+    Copy-Item $src $OutDir -Force
   }
 
   # Verify every MSVC runtime DLL imported by the ICU DLLs is staged next to them.
