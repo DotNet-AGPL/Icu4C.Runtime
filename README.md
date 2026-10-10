@@ -72,9 +72,17 @@ See `scripts/verify-local.sh`. It publishes the JIT and AOT test apps and runs t
 
 ## Versioning
 
-Package version is `{icu-major}.{icu-minor}.{build}` (e.g. `77.1.0` for ICU 77.1). The ICU version
-used by the targets must match the bundled binaries; the release pipeline is responsible for keeping
-`_IcuVersion` in `build*/Icu4C.Runtime.targets` in sync.
+Package version is `{icu-major}.{icu-minor}.{base}[.{revision}]`:
+
+- `77.1.0` — first release for ICU 77.1
+- `77.1.0.1`, `77.1.0.2`, … — bugfix / repack releases of the **same** ICU 77.1
+
+The version is defined once in `Directory.Build.props` as `<IcuPackageVersion>`; the package and the
+test projects both consume it.
+
+- NuGet supports 4-part versions. **Do not use a zero 4th part** (`77.1.0.0` normalizes to `77.1.0`).
+- The ICU version used for `AppLocalIcu` is independent: it lives in `_IcuVersion` inside
+  `build*/Icu4C.Runtime.targets` and must match the bundled binaries' names.
 
 ## Building & releasing (CI)
 

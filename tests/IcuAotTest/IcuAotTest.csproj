@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Icu4C.Runtime" Version="77.1.0" />
+    <PackageReference Include="Icu4C.Runtime" Version="$(IcuPackageVersion)" />
   </ItemGroup>
 
 </Project>

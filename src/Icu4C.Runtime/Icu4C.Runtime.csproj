@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Icu4C.Runtime</PackageId>
-    <Version>77.1.0</Version>
+    <Version>$(IcuPackageVersion)</Version>
     <Authors>DotNet-AGPL</Authors>
     <Description>AppLocal ICU4C runtime binaries for .NET. Supports JIT and Native AOT without host ICU dependency.</Description>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
