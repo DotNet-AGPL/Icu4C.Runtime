@@ -125,23 +125,60 @@ try {
                          "msvcp140_codecvt_ids", "vcruntime140", "vcruntime140_1")
   $requiredBaseNames = @("msvcp140", "vcruntime140", "vcruntime140_1")
 
-  $crtDir = $null
+  $vsRoot = $null
   if (Test-Path $vswhere) {
     $vsRoot = & $vswhere -latest -products * -property installationPath | Select-Object -First 1
-    if (-not [string]::IsNullOrEmpty($vsRoot)) {
-      $crtDir = Get-ChildItem (Join-Path $vsRoot "VC/Redist/MSVC") -Recurse -Directory -Filter "Microsoft.VC*.CRT" -ErrorAction SilentlyContinue |
-                Where-Object {
-                  $_.FullName -match "\\$vsArch\\" -and
-                  $_.FullName -notmatch '\\onecore\\' -and
-                  (Test-Path (Join-Path $_.FullName "msvcp140.dll"))
-                } |
-                Select-Object -First 1 -ExpandProperty FullName
-    }
+  }
+  if ([string]::IsNullOrEmpty($vsRoot)) {
+    throw "Visual Studio installation not found; cannot locate the MSVC redistributable CRT."
+  }
+
+  # Highest MSVC toolset version present (used to pick a compatible redist).
+  $toolsetVer = $null
+  $toolsDir = Join-Path $vsRoot "VC/Tools/MSVC"
+  if (Test-Path $toolsDir) {
+    $toolsetVer = Get-ChildItem $toolsDir -Directory -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -match '^\d+\.\d+\.\d+' } |
+      Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1 -ExpandProperty Name
+  }
+
+  # IMPORTANT: do NOT pick an arbitrary/oldest redist. An old msvcp140.dll (e.g. VS2019's
+  # 14.29) is ABI-incompatible with binaries built by the newer toolset and CRASHES at load.
+  # Prefer the redist matching the toolset version; otherwise the highest version available.
+  $redistRoot = Join-Path $vsRoot "VC/Redist/MSVC"
+  $candidates = @()
+  if (Test-Path $redistRoot) {
+    $candidates = Get-ChildItem $redistRoot -Recurse -Directory -Filter "Microsoft.VC*.CRT" -ErrorAction SilentlyContinue |
+      Where-Object {
+        $_.FullName -match "\\$vsArch\\" -and
+        $_.FullName -notmatch '\\onecore\\' -and
+        (Test-Path (Join-Path $_.FullName "msvcp140.dll"))
+      } |
+      ForEach-Object {
+        $ver = $null
+        if ($_.FullName -match '\\MSVC\\([0-9]+\.[0-9]+\.[0-9]+)\\') { $ver = $Matches[1] }
+        [pscustomobject]@{ Path = $_.FullName; Version = $ver }
+      }
+  }
+  $crtDir = $null
+  if ($toolsetVer) {
+    $crtDir = ($candidates | Where-Object { $_.Version -eq $toolsetVer } | Select-Object -First 1).Path
   }
   if ([string]::IsNullOrEmpty($crtDir)) {
-    throw "Could not locate the MSVC redistributable CRT for $vsArch under the Visual Studio installation."
+    $crtDir = ($candidates | Where-Object { $_.Version } | Sort-Object { [version]$_.Version } -Descending | Select-Object -First 1).Path
   }
-  Write-Host "  source: $crtDir"
+  if ([string]::IsNullOrEmpty($crtDir)) {
+    throw "Could not locate the MSVC redistributable CRT for $vsArch under $redistRoot."
+  }
+
+  # Guard: refuse to bundle a runtime older than the toolset that built ICU.
+  $msvcpVerStr = (Get-Item (Join-Path $crtDir "msvcp140.dll")).VersionInfo.FileVersion
+  $m = [regex]::Match($msvcpVerStr, '\d+(\.\d+)+')
+  $msvcpVer = if ($m.Success) { [version]$m.Value } else { $null }
+  if ($toolsetVer -and $msvcpVer -and ($msvcpVer -lt [version]$toolsetVer)) {
+    throw "Selected MSVC runtime ($msvcpVer) is older than the toolset ($toolsetVer); refusing to bundle an incompatible runtime."
+  }
+  Write-Host "  toolset=$toolsetVer  source=$crtDir  msvcp140=$msvcpVer"
 
   foreach ($b in $runtimeBaseNames) {
     $src = Join-Path $crtDir "$b.dll"
