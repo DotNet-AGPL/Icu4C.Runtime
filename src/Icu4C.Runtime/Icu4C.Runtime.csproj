@@ -19,10 +19,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\buildTransitive\**" Pack="true" PackagePath="buildTransitive\" />
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
-    <None Include="..\..\LICENSE-ICU" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE-ICU')" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" Condition="Exists('..\..\README.md')" />
+    <None Include="../../buildTransitive/**" Pack="true" PackagePath="buildTransitive/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE')" />
+    <None Include="../../LICENSE-ICU" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE-ICU')" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" Condition="Exists('../../README.md')" />
   </ItemGroup>
 
   <!-- One dependency per platform package. These flow to consumers (natives), while their

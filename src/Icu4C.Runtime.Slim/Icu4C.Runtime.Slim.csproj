@@ -23,11 +23,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\runtimes\$(IcuRid)\native\**" Pack="true" PackagePath="runtimes\$(IcuRid)\native\" />
-    <None Include="..\..\build-slim\Icu4C.Runtime.$(IcuRid).targets" Pack="true" PackagePath="build\" />
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
-    <None Include="..\..\LICENSE-ICU" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE-ICU')" />
-    <None Include="..\..\README-SLIM.md" Pack="true" PackagePath="\" Condition="Exists('..\..\README-SLIM.md')" />
+    <None Include="../../runtimes/$(IcuRid)/native/**" Pack="true" PackagePath="runtimes/$(IcuRid)/native/" />
+    <None Include="../../build-slim/Icu4C.Runtime.$(IcuRid).targets" Pack="true" PackagePath="build/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE')" />
+    <None Include="../../LICENSE-ICU" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE-ICU')" />
+    <None Include="../../README-SLIM.md" Pack="true" PackagePath="/" Condition="Exists('../../README-SLIM.md')" />
   </ItemGroup>
 
   <Target Name="_RequireIcuRid" BeforeTargets="PrepareForBuild;Pack">
