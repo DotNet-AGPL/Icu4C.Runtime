@@ -1,0 +1,35 @@
+﻿<Project>
+
+  <!-- Platform package Icu4C.Runtime.osx-arm64 (direct-reference only: packed under build/).
+       Injects AppLocalIcu and, for AOT, copies the natives + adds an rpath, but ONLY when
+       building for RID osx-arm64. For other RIDs it is a silent no-op (this package may also be
+       pulled in transitively through the Icu4C.Runtime meta package). -->
+
+  <PropertyGroup>
+    <_IcuPackageRid>osx-arm64</_IcuPackageRid>
+    <_IcuVersion Condition="'$(_IcuVersion)' == ''">77.1</_IcuVersion>
+    <_IcuNativeDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..', 'runtimes', 'osx-arm64', 'native'))</_IcuNativeDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'osx-arm64'">
+    <RuntimeHostConfigurationOption Include="System.Globalization.AppLocalIcu" Value="$(_IcuVersion)" />
+    <RuntimeHostConfigurationOption Include="System.Globalization.UseNls" Value="false" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <InvariantGlobalization Condition="'$(InvariantGlobalization)' == ''">false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' == 'osx-arm64' and Exists('$(_IcuNativeDir)')">
+    <None Include="$(_IcuNativeDir)*"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' == 'osx-arm64'">
+    <LinkerArg Include="-Wl,-rpath,'$ORIGIN'" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <LinkerArg Include="-Wl,-rpath,'@executable_path'" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+  </ItemGroup>
+
+</Project>

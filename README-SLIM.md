@@ -1,13 +1,10 @@
-# Icu4C.Runtime.&lt;rid&gt; (slim)
+# Icu4C.Runtime.&lt;rid&gt;
 
 AppLocal ICU4C runtime binaries for a **single RID**, for .NET 10 — full globalization in
 **JIT and Native AOT** without a host-installed ICU.
 
-This is the slim variant: it bundles the binaries for one RID only (≈15 MB) instead of all RIDs
-(≈120 MB). Use it when restore size matters and you know your target RID.
-
-> Prefer the universal `Icu4C.Runtime` package if you need a single reference that works on every
-> RID. **Do not reference both** the universal package and a slim package.
+This is a **platform package**: it bundles the natives for one RID (≈15 MB) plus a `build/` targets
+file. It is also pulled in transitively by the `Icu4C.Runtime` meta package.
 
 ## Usage
 
@@ -28,20 +25,16 @@ For multiple RIDs, reference each one conditionally:
 </ItemGroup>
 ```
 
-The package's targets inject `System.Globalization.AppLocalIcu`, set `InvariantGlobalization=false`
-(unless you set it), and for `PublishAot=true` copy the libraries to the publish root and add an rpath.
+If instead you want a single reference that works on every RID, use the meta package
+`Icu4C.Runtime` (which depends on all platform packages).
 
-If you use a slim package while building for a different RID, warning `ICU4C005` is emitted.
+The package's `build/` targets:
 
-## Warning codes
+- inject `System.Globalization.AppLocalIcu` **only when building for its RID**,
+- set `InvariantGlobalization=false` (unless you set it),
+- for `PublishAot=true`, copy the natives to the publish root and add an rpath.
 
-| Code | Meaning |
-|---|---|
-| `ICU4C001` | Target RID is not covered by this package. |
-| `ICU4C002` | No ICU native binaries found under the package's `runtimes/<rid>/native`. |
-| `ICU4C003` | `InvariantGlobalization=true` conflicts with this package. |
-| `ICU4C004` | Bundled binary major version doesn't match the declared ICU version. |
-| `ICU4C005` | A slim package for a different RID is in use. |
+When the package is used while building for a different RID, it is a silent no-op.
 
 ## License
 

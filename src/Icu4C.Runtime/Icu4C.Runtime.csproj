@@ -1,27 +1,41 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Meta package: no binaries. It pulls in the per-RID platform packages
+       (Icu4C.Runtime.<rid>), which carry the natives, and injects AppLocalIcu via buildTransitive. -->
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Icu4C.Runtime</PackageId>
     <Version>$(IcuPackageVersion)</Version>
     <Authors>DotNet-AGPL</Authors>
-    <Description>AppLocal ICU4C runtime binaries for .NET. Supports JIT and Native AOT without host ICU dependency.</Description>
+    <Description>AppLocal ICU4C for .NET (meta package). Depends on the per-RID Icu4C.Runtime.&lt;rid&gt; packages; supports JIT and Native AOT.</Description>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/DotNet-AGPL/Icu4C.Runtime</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DotNet-AGPL/Icu4C.Runtime</RepositoryUrl>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <NoWarn>NU5128</NoWarn>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\buildTransitive\**" Pack="true" PackagePath="buildTransitive\" />
-    <None Include="..\..\runtimes\**" Pack="true" PackagePath="runtimes\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
     <None Include="..\..\LICENSE-ICU" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE-ICU')" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" Condition="Exists('..\..\README.md')" />
+  </ItemGroup>
+
+  <!-- One dependency per platform package. These flow to consumers (natives), while their
+       build/ targets stay private (default PrivateAssets) so they are not re-applied here. -->
+  <ItemGroup>
+    <PackageReference Include="Icu4C.Runtime.linux-x64" Version="$(IcuPackageVersion)" />
+    <PackageReference Include="Icu4C.Runtime.linux-arm64" Version="$(IcuPackageVersion)" />
+    <PackageReference Include="Icu4C.Runtime.linux-musl-x64" Version="$(IcuPackageVersion)" />
+    <PackageReference Include="Icu4C.Runtime.linux-musl-arm64" Version="$(IcuPackageVersion)" />
+    <PackageReference Include="Icu4C.Runtime.win-x64" Version="$(IcuPackageVersion)" />
+    <PackageReference Include="Icu4C.Runtime.win-arm64" Version="$(IcuPackageVersion)" />
+    <PackageReference Include="Icu4C.Runtime.osx-x64" Version="$(IcuPackageVersion)" />
+    <PackageReference Include="Icu4C.Runtime.osx-arm64" Version="$(IcuPackageVersion)" />
   </ItemGroup>
 
 </Project>

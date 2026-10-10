@@ -3,31 +3,30 @@
 AppLocal ICU4C runtime binaries for .NET 10 — full globalization (ICU) support in **JIT and Native
 AOT**, without relying on a host-installed ICU.
 
-Two ways to consume it:
-
-- **Universal** `Icu4C.Runtime` — all RIDs in one package (one-line reference, ≈120 MB restore).
-- **Slim** `Icu4C.Runtime.<rid>` — one RID per package (≈15 MB each), for when restore size matters.
+`Icu4C.Runtime` is a **meta package**: it has no binaries of its own and depends on the per-RID
+platform packages (`Icu4C.Runtime.<rid>`), which carry the natives. Reference the meta for a
+one-line, works-everywhere setup, or reference a single platform package to keep restore small.
 
 ## Why
 
 - The .NET runtime normally depends on a system-installed ICU. In slim containers it may be missing
   and apps crash with `FailFast: Couldn't find a valid ICU package`.
 - `Microsoft.ICU.ICU4C.Runtime` is unmaintained and doesn't cover .NET 10 / Native AOT.
-- This package ships ICU binaries per RID, wires up `System.Globalization.AppLocalIcu` automatically,
-  and (for AOT) copies the binaries next to the executable and injects an rpath.
+- These packages ship ICU binaries per RID, wire up `System.Globalization.AppLocalIcu` automatically,
+  and (for AOT) inject an rpath so the loader finds the app-local libraries.
 
 ## Packages
 
-| Package | Contents | Restore size |
-|---|---|---|
-| `Icu4C.Runtime` | all 8 RIDs | ≈120 MB |
-| `Icu4C.Runtime.linux-x64` · `.linux-arm64` · `.linux-musl-x64` · `.linux-musl-arm64` | one RID each | ≈15 MB each |
-| `Icu4C.Runtime.win-x64` · `.win-arm64` | one RID each | ≈15 MB each |
-| `Icu4C.Runtime.osx-x64` · `.osx-arm64` | one RID each | ≈15 MB each |
+| Package | Contents |
+|---|---|
+| `Icu4C.Runtime` | **meta** — no binaries; depends on the 8 platform packages |
+| `Icu4C.Runtime.linux-x64` · `.linux-arm64` · `.linux-musl-x64` · `.linux-musl-arm64` | natives (one RID each) + `build/` targets |
+| `Icu4C.Runtime.win-x64` · `.win-arm64` | natives (one RID each) + `build/` targets |
+| `Icu4C.Runtime.osx-x64` · `.osx-arm64` | natives (one RID each) + `build/` targets |
 
 ## Usage
 
-Universal (works on every RID):
+Meta (one reference; works on every RID):
 
 ```xml
 <ItemGroup>
@@ -35,7 +34,7 @@ Universal (works on every RID):
 </ItemGroup>
 ```
 
-Slim (per RID — **do not reference both a slim package and the universal one**):
+Single platform (smaller restore, known target RID):
 
 ```xml
 <ItemGroup>
@@ -52,49 +51,58 @@ For several RIDs, reference each one conditionally:
 </ItemGroup>
 ```
 
-No project-file changes are required. The package's `buildTransitive` targets:
+No project-file changes are required. The packages:
 
 - set `InvariantGlobalization=false` (unless you set it explicitly),
 - inject `System.Globalization.AppLocalIcu` = the packaged ICU version,
-- for `PublishAot=true`, copy the native libraries to the publish root and inject an rpath.
+- for `PublishAot=true`, add an rpath (`$ORIGIN` on Linux, `@executable_path` on macOS).
 
 ### JIT / framework-dependent
 
-Native libraries come from `runtimes/{rid}/native/` through the standard NuGet native-asset
+Native libraries come from `runtimes/<rid>/native/` through the standard NuGet native-asset
 mechanism (deps.json) and are resolved at runtime.
 
 ### Native AOT
 
-Native libraries are copied to the publish root and loaded from the application directory
-(`System.Globalization.AppLocalIcu` embedded into the executable by ILC). On Linux the loader uses
-`$ORIGIN`; on macOS `@executable_path`.
+The natives are copied to the publish root by the SDK; the injected rpath plus
+`System.Globalization.AppLocalIcu` (embedded into the executable by ILC) let the loader find them.
+
+## Download & output size
+
+Because NuGet cannot filter dependencies by RID, a project referencing the **meta** package restores
+**all** platform packages (≈119 MB of package downloads, regardless of target RID). What ends up in
+the app depends on the publish mode:
+
+| Publish | ICU natives in the output |
+|---|---|
+| `-r <rid>` / Native AOT | only that RID (≈38 MB) |
+| portable (no `-r`) | all 8 RIDs under `runtimes/<rid>/native/` |
+
+To avoid the extra download, reference the specific `Icu4C.Runtime.<rid>` package instead.
 
 ## Supported RIDs
 
 `linux-x64`, `linux-arm64`, `linux-musl-x64`, `linux-musl-arm64`, `win-x64`, `win-arm64`,
 `osx-x64`, `osx-arm64`.
 
-Unsupported RIDs produce warning `ICU4C001`.
-
 ## Warnings
 
 | Code | Meaning |
 |---|---|
-| `ICU4C001` | Target RID has no binaries in this package. |
-| `ICU4C002` | No ICU native binaries found under the package's `runtimes/<rid>/native`. |
+| `ICU4C001` | Target RID has no platform package (emitted by the meta package). |
 | `ICU4C003` | `InvariantGlobalization=true` conflicts with this package; ICU won't be enabled. |
-| `ICU4C004` | The bundled binary's major version doesn't match the declared ICU version. |
-| `ICU4C005` | A slim package for a different RID is in use. |
+
+A platform package is silent when it is used while building for a different RID (it may also be
+pulled in transitively by the meta package).
 
 ## How it works
 
-- Both package kinds share `buildTransitive/_IcuRuntimeCore.targets`.
-- Each package ships an id-named shim that imports the core
-  (`Icu4C.Runtime.targets` for the universal package, `Icu4C.Runtime.<rid>.targets` for slim).
-- `AppLocalIcu` and `InvariantGlobalization` are injected at **evaluation time**, so they apply to
-  both JIT and Native AOT (ILC reads `RuntimeHostConfigurationOption` while writing its rsp file).
-- For AOT the core copies the libraries to the publish root and adds `-Wl,-rpath,'$ORIGIN'`
-  (Linux) / `'@executable_path'` (macOS).
+- `Icu4C.Runtime` (meta) ships `buildTransitive/Icu4C.Runtime.targets`: it injects `AppLocalIcu` and
+  adds the AOT rpath. Its nuspec lists the 8 platform packages as dependencies.
+- A platform package ships the natives under `runtimes/<rid>/native/` and a `build/Icu4C.Runtime.<rid>.targets`.
+  `build/` assets apply **only to direct references** (not transitively), so they are not re-applied
+  when the platform packages arrive through the meta package. The platform targets inject
+  `AppLocalIcu` only when building for their RID.
 
 ## Building the native binaries
 
@@ -110,21 +118,19 @@ when github.com is unreachable). Cross-compilation for Linux ARM64 builds the x6
 
 ## Packing
 
-```bash
-# Universal package (all RIDs)
-dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
+Pack the platform packages first, then the meta package (which resolves them from the local feed):
 
-# Slim packages (one per RID)
+```bash
 for rid in linux-x64 linux-arm64 linux-musl-x64 linux-musl-arm64 win-x64 win-arm64 osx-x64 osx-arm64; do
   dotnet pack src/Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj -c Release -o nupkg -p:IcuRid=$rid
 done
+dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
 ```
 
 ## Local verification
 
-See `scripts/verify-local.sh`. It publishes the JIT and AOT test apps and runs them in containers.
-ICU is loaded via `dlopen`, so `ldd | grep icu` will not show it — rely on the app output and, for
-AOT, on `readelf -d` showing an `$ORIGIN` runpath.
+See `scripts/verify-local.sh`. ICU is loaded via `dlopen`, so `ldd | grep icu` will not show it —
+rely on the app output and, for AOT, on `readelf -d` showing an `$ORIGIN` runpath.
 
 ## Versioning
 
@@ -139,8 +145,7 @@ test projects consume it.
 
 - The ICU shared libraries keep their own version (`77.1` → `libicu*.so.77.1`, `libicu*.77.1.dylib`,
   `icuuc77.dll`); the package version does not change the `.so`/`.dll` names.
-- The ICU version used for `AppLocalIcu` is independent: it lives in `_IcuVersion` inside
-  `buildTransitive/_IcuRuntimeCore.targets` and must match the bundled binaries' names.
+- The ICU version used for `AppLocalIcu` is independent: it lives in `_IcuVersion` inside the targets.
 
 ## Building & releasing (CI)
 
@@ -148,14 +153,14 @@ test projects consume it.
 `macos-15-intel` for `osx-x64`, and `windows-2022`):
 
 - runs on **`v*` tags**, on **pull requests** touching build files, and on **manual dispatch**
-- each package is uploaded as its **own artifact** (no giant bundle): `nupkg-core` = the universal
-  package, `pkg-<rid>` = each slim package (~15 MB)
+- each package is uploaded as its **own artifact**: `pkg-<rid>` = the platform packages, `nupkg-core`
+  = the (tiny) meta package
 - **NuGet publishing is manual**: tag pushes and normal runs only build + upload artifacts. To
   publish, run the workflow manually with the `publish` input enabled (requires the `NUGET_API_KEY`
   repository secret). Otherwise download the package artifacts and push them yourself:
 
   ```bash
-  dotnet nuget push "nupkg/*.nupkg" --api-key <KEY> --source https://api.nuget.org/v3/index.json
+  dotnet nuget push "*.nupkg" --api-key <KEY> --source https://api.nuget.org/v3/index.json
   ```
 
 ## License

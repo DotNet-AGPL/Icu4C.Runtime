@@ -1,7 +1,42 @@
 <Project>
 
-  <!-- Universal package: ships every supported RID under runtimes/<rid>/native.
-       All logic lives in the shared core (also shipped by the slim packages). -->
-  <Import Project="$(MSBuildThisFileDirectory)_IcuRuntimeCore.targets" />
+  <!--
+    Universal META package: Icu4C.Runtime.
+    It ships NO binaries; it depends on the platform packages (Icu4C.Runtime.<rid>)
+    which carry the natives. This targets injects AppLocalIcu for the consumer.
+
+    NOTE: this is a buildTransitive/ file (applies to direct AND transitive consumers).
+    The platform packages use build/ (direct-reference only) so they are NOT re-applied
+    when they are pulled in transitively through this meta package.
+  -->
+
+  <PropertyGroup>
+    <_IcuSupportedRids>linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;win-x64;win-arm64;osx-x64;osx-arm64</_IcuSupportedRids>
+    <_IcuVersion Condition="'$(_IcuVersion)' == ''">77.1</_IcuVersion>
+  </PropertyGroup>
+
+  <!-- Inject AppLocalIcu at evaluation time: effective for JIT and Native AOT. -->
+  <ItemGroup Condition="'$(_IcuVersion)' != ''">
+    <RuntimeHostConfigurationOption Include="System.Globalization.AppLocalIcu" Value="$(_IcuVersion)" />
+    <RuntimeHostConfigurationOption Include="System.Globalization.UseNls" Value="false" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <InvariantGlobalization Condition="'$(InvariantGlobalization)' == ''">false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <Target Name="_IcuValidateMeta" BeforeTargets="PrepareForBuild">
+    <Warning Condition="'$(RuntimeIdentifier)' != '' And !$(_IcuSupportedRids.Contains('$(RuntimeIdentifier)'))"
+             Text="ICU4C001: Icu4C.Runtime does not provide binaries for RID '$(RuntimeIdentifier)'. Supported RIDs: $(_IcuSupportedRids)." />
+    <Warning Condition="'$(InvariantGlobalization)' == 'true'"
+             Text="ICU4C003: InvariantGlobalization=true conflicts with Icu4C.Runtime; ICU will not be enabled." />
+  </Target>
+
+  <!-- For AOT the natives are provided by the platform packages and copied to the publish root
+       by the SDK; only the rpath needs to be injected here. -->
+  <ItemGroup Condition="'$(PublishAot)' == 'true'">
+    <LinkerArg Include="-Wl,-rpath,'$ORIGIN'" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <LinkerArg Include="-Wl,-rpath,'@executable_path'" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+  </ItemGroup>
 
 </Project>

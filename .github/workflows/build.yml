@@ -10,7 +10,7 @@ on:
     paths:
       - 'scripts/**'
       - 'buildTransitive/**'
-      - 'buildTransitive-slim/**'
+      - 'build-slim/**'
       - 'src/**'
       - 'Directory.Build.props'
       - '.github/workflows/build.yml'
@@ -101,14 +101,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Pack the slim single-RID package here so each is uploaded as its own artifact.
-      - name: Pack slim package (Icu4C.Runtime.${{ matrix.rid }})
+      # Platform package (natives + build/) uploaded per RID.
+      - name: Pack platform package (Icu4C.Runtime.${{ matrix.rid }})
         run: dotnet pack src/Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj -c Release -o nupkg -p:IcuRid=${{ matrix.rid }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-${{ matrix.rid }}
-          path: runtimes/${{ matrix.rid }}/native/
 
       - uses: actions/upload-artifact@v4
         with:
@@ -121,42 +116,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
-        with:
-          path: runtimes
-          pattern: native-*
-
-      - name: Restructure artifacts
-        run: |
-          for dir in runtimes/native-*; do
-            rid="${dir#runtimes/native-}"
-            mkdir -p "runtimes/${rid}/native"
-            mv "${dir}"/* "runtimes/${rid}/native/"
-            rmdir "${dir}"
-          done
-          find runtimes -type f | sort
-
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Pack universal package (Icu4C.Runtime)
-        run: dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
+      - name: Download platform packages
+        uses: actions/download-artifact@v4
+        with:
+          path: platform-pkgs
+          pattern: pkg-*
+          merge-multiple: true
+
+      - name: Pack meta package (Icu4C.Runtime)
+        run: |
+          dotnet restore src/Icu4C.Runtime/Icu4C.Runtime.csproj -s "$PWD/platform-pkgs"
+          dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg --no-restore
 
       - uses: actions/upload-artifact@v4
         with:
           name: nupkg-core
           path: nupkg/*.nupkg
 
-      - name: Download slim packages (for publishing)
-        uses: actions/download-artifact@v4
-        with:
-          path: nupkg
-          pattern: pkg-*
-          merge-multiple: true
-
-      - name: List packages
-        run: ls -l nupkg
+      - name: Collect all packages for publishing
+        run: cp platform-pkgs/*.nupkg nupkg/ && ls -l nupkg
 
       # NuGet publishing is manual: it only runs on a manual workflow_dispatch
       # with the "publish" input enabled, and requires the NUGET_API_KEY secret.

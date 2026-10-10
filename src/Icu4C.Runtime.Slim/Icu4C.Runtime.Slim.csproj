@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Slim, single-RID package: Icu4C.Runtime.<IcuRid>.
+    Platform (slim) package: Icu4C.Runtime.<IcuRid>.
     Packed once per RID:  dotnet pack ... -p:IcuRid=linux-x64
-    Contains only the natives + buildTransitive for that RID.
+    Contains the natives + a build/ targets (direct-reference only).
   -->
 
   <PropertyGroup>
@@ -24,8 +24,7 @@
 
   <ItemGroup>
     <None Include="..\..\runtimes\$(IcuRid)\native\**" Pack="true" PackagePath="runtimes\$(IcuRid)\native\" />
-    <None Include="..\..\buildTransitive\_IcuRuntimeCore.targets" Pack="true" PackagePath="buildTransitive\" />
-    <None Include="..\..\buildTransitive-slim\Icu4C.Runtime.$(IcuRid).targets" Pack="true" PackagePath="buildTransitive\" />
+    <None Include="..\..\build-slim\Icu4C.Runtime.$(IcuRid).targets" Pack="true" PackagePath="build\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
     <None Include="..\..\LICENSE-ICU" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE-ICU')" />
     <None Include="..\..\README-SLIM.md" Pack="true" PackagePath="\" Condition="Exists('..\..\README-SLIM.md')" />
