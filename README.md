@@ -76,6 +76,19 @@ Package version is `{icu-major}.{icu-minor}.{build}` (e.g. `77.1.0` for ICU 77.1
 used by the targets must match the bundled binaries; the release pipeline is responsible for keeping
 `_IcuVersion` in `build*/Icu4C.Runtime.targets` in sync.
 
+## Building & releasing (CI)
+
+The GitHub Actions workflow (`.github/workflows/build.yml`) builds all RIDs and packs a nupkg:
+
+- runs on **`v*` tags**, on **pull requests** touching build files, and on **manual dispatch**
+- **NuGet publishing is manual**: tag pushes and normal runs only build + upload artifacts.
+  To publish, run the workflow manually with the `publish` input enabled (requires the
+  `NUGET_API_KEY` repository secret). Otherwise download the `nupkg` artifact and push it yourself:
+
+  ```bash
+  dotnet nuget push Icu4C.Runtime.77.1.0.nupkg --api-key <KEY> --source https://api.nuget.org/v3/index.json
+  ```
+
 ## License
 
 - This project (`Icu4C.Runtime` build scripts, targets, and packaging) is licensed under the
