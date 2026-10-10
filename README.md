@@ -25,6 +25,22 @@ That's it. No project-file changes required. The package's `buildTransitive` tar
 - inject `System.Globalization.AppLocalIcu` = the packaged ICU version,
 - for `PublishAot=true`, copy the native libraries to the publish root and add an rpath.
 
+### Slim packages (per-RID)
+
+If restore size matters and you know your target RID, use the slim package instead of the universal
+one (≈15 MB vs ≈120 MB). **Do not reference both.**
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.0" />
+</ItemGroup>
+```
+
+Available slim packages: `Icu4C.Runtime.linux-x64`, `.linux-arm64`, `.linux-musl-x64`,
+`.linux-musl-arm64`, `.win-x64`, `.win-arm64`, `.osx-x64`, `.osx-arm64`. Reference each RID
+conditionally when you build for several targets. Using a slim package with a mismatched RID emits
+warning `ICU4C005`.
+
 ### JIT / framework-dependent
 
 Native libraries come from `runtimes/{rid}/native/` through the standard NuGet native-asset

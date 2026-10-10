@@ -1,29 +1,37 @@
 <Project>
 
+  <!--
+    Shared build logic for the Icu4C.Runtime packages.
+
+    Imported by the package's id-named shim targets:
+      * Icu4C.Runtime.targets            (universal package, all RIDs)
+      * Icu4C.Runtime.<rid>.targets      (slim per-RID packages)
+
+    The shim may override these properties before importing (all optional):
+      _IcuSupportedRids  supported RIDs list            (default: all 8)
+      _IcuPackageRid     the single RID a slim package ships (enables ICU4C005)
+      _IcuVersion        bundled ICU version            (default: 77.1)
+  -->
+
   <PropertyGroup>
-    <_IcuSupportedRids>linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;win-x64;win-arm64;osx-x64;osx-arm64</_IcuSupportedRids>
-
-    <!-- 求值期确定原生库目录；NormalizeDirectory 保证跨平台分隔符 -->
-    <_IcuNativeDir Condition="'$(RuntimeIdentifier)' != ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..', 'runtimes', '$(RuntimeIdentifier)', 'native'))</_IcuNativeDir>
-
-    <!-- 单一事实来源：打包时按实际构建的 ICU 版本注入（勿与包版本漂移） -->
+    <_IcuSupportedRids Condition="'$(_IcuSupportedRids)' == ''">linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;win-x64;win-arm64;osx-x64;osx-arm64</_IcuSupportedRids>
     <_IcuVersion Condition="'$(_IcuVersion)' == ''">77.1</_IcuVersion>
     <_IcuVersionMajor>$([System.Text.RegularExpressions.Regex]::Match('$(_IcuVersion)', '^\d+').Value)</_IcuVersionMajor>
+    <_IcuNativeDir Condition="'$(RuntimeIdentifier)' != ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..', 'runtimes', '$(RuntimeIdentifier)', 'native'))</_IcuNativeDir>
   </PropertyGroup>
 
-  <!-- 求值期注入 AppLocalIcu：JIT 与 NativeAOT 均生效
-       （AOT 由 ILC 在 WriteIlcRspFileForCompilation 读取该 item 并编入可执行文件） -->
+  <!-- Inject AppLocalIcu at evaluation time: effective for JIT and Native AOT. -->
   <ItemGroup Condition="'$(_IcuVersion)' != ''">
     <RuntimeHostConfigurationOption Include="System.Globalization.AppLocalIcu" Value="$(_IcuVersion)" />
     <RuntimeHostConfigurationOption Include="System.Globalization.UseNls" Value="false" />
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- 不覆盖用户显式设置 -->
+    <!-- Do not override an explicit user setting. -->
     <InvariantGlobalization Condition="'$(InvariantGlobalization)' == ''">false</InvariantGlobalization>
   </PropertyGroup>
 
-  <!-- 扫描实际文件名，仅用于一致性校验告警 -->
+  <!-- Scans the native directory; used only for consistency warnings. -->
   <UsingTask TaskName="GetIcuVersion" TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
@@ -36,7 +44,6 @@
       <Code Type="Fragment" Language="cs"><![CDATA[
         IcuVersion = "";
         if (!string.IsNullOrEmpty(NativeDir) && Directory.Exists(NativeDir)) {
-          // 统一取「主版本」用于对比
           foreach (var f in Directory.GetFiles(NativeDir, "libicuuc.so.*")) {
             var m = Regex.Match(Path.GetFileName(f), @"^libicuuc\.so\.(\d+)");
             if (m.Success) { IcuVersion = m.Groups[1].Value; break; }
@@ -53,8 +60,10 @@
   </UsingTask>
 
   <Target Name="_IcuValidate" BeforeTargets="PrepareForBuild">
-    <Warning Condition="'$(RuntimeIdentifier)' != '' And !$(_IcuSupportedRids.Contains('$(RuntimeIdentifier)'))"
+    <Warning Condition="'$(RuntimeIdentifier)' != '' And '$(_IcuSupportedRids)' != '' And !$(_IcuSupportedRids.Contains('$(RuntimeIdentifier)'))"
              Text="ICU4C001: Icu4C.Runtime 未覆盖 RID '$(RuntimeIdentifier)'。支持: $(_IcuSupportedRids)。" />
+    <Warning Condition="'$(_IcuPackageRid)' != '' And '$(RuntimeIdentifier)' != '' And '$(RuntimeIdentifier)' != '$(_IcuPackageRid)'"
+             Text="ICU4C005: 此包为 Icu4C.Runtime.$(_IcuPackageRid)，但当前构建 RID 为 '$(RuntimeIdentifier)'。请引用与该 RID 匹配的 slim 包。" />
     <Warning Condition="'$(InvariantGlobalization)' == 'true'"
              Text="ICU4C003: InvariantGlobalization=true 与 Icu4C.Runtime 冲突，ICU 不会启用。" />
 
@@ -68,15 +77,15 @@
              Text="ICU4C004: 原生库主版本 '$(_IcuScannedVersion)' 与声明版本 '$(_IcuVersion)' 不一致。" />
   </Target>
 
-  <!-- AOT：复制到发布根目录，供 AppLocalIcu 经 ApplicationDirectory 加载 -->
-  <ItemGroup Condition="'$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' != ''">
+  <!-- AOT: copy the native libraries to the publish root (loaded from ApplicationDirectory). -->
+  <ItemGroup Condition="'$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' != '' and '$(_IcuNativeDir)' != ''">
     <None Include="$(_IcuNativeDir)*"
           CopyToOutputDirectory="PreserveNewest"
           CopyToPublishDirectory="PreserveNewest"
           Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <!-- rpath 用单 $（不是 $$） -->
+  <!-- Optional rpath (single $, not $$). -->
   <ItemGroup Condition="'$(PublishAot)' == 'true'">
     <LinkerArg Include="-Wl,-rpath,'$ORIGIN'" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <LinkerArg Include="-Wl,-rpath,'@executable_path'" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />

@@ -17,7 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\build\**" Pack="true" PackagePath="build\" />
     <None Include="..\..\buildTransitive\**" Pack="true" PackagePath="buildTransitive\" />
     <None Include="..\..\runtimes\**" Pack="true" PackagePath="runtimes\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Slim, single-RID package: Icu4C.Runtime.<IcuRid>.
+    Packed once per RID:  dotnet pack ... -p:IcuRid=linux-x64
+    Contains only the natives + buildTransitive for that RID.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Icu4C.Runtime.$(IcuRid)</PackageId>
+    <Version>$(IcuPackageVersion)</Version>
+    <Authors>DotNet-AGPL</Authors>
+    <Description>AppLocal ICU4C runtime binaries for .NET, RID $(IcuRid) only. Supports JIT and Native AOT.</Description>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageReadmeFile>README-SLIM.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/DotNet-AGPL/Icu4C.Runtime</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DotNet-AGPL/Icu4C.Runtime</RepositoryUrl>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>NU5128</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\runtimes\$(IcuRid)\native\**" Pack="true" PackagePath="runtimes\$(IcuRid)\native\" />
+    <None Include="..\..\buildTransitive\_IcuRuntimeCore.targets" Pack="true" PackagePath="buildTransitive\" />
+    <None Include="..\..\buildTransitive-slim\Icu4C.Runtime.$(IcuRid).targets" Pack="true" PackagePath="buildTransitive\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
+    <None Include="..\..\LICENSE-ICU" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE-ICU')" />
+    <None Include="..\..\README-SLIM.md" Pack="true" PackagePath="\" Condition="Exists('..\..\README-SLIM.md')" />
+  </ItemGroup>
+
+  <Target Name="_RequireIcuRid" BeforeTargets="PrepareForBuild;Pack">
+    <Error Condition="'$(IcuRid)' == ''"
+           Text="IcuRid is required. Pack with: dotnet pack src/Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj -p:IcuRid=linux-x64" />
+  </Target>
+
+</Project>

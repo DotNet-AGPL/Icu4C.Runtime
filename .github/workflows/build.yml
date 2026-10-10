@@ -126,8 +126,15 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Pack
+      - name: Pack (universal)
         run: dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
+
+      - name: Pack (slim per-RID)
+        run: |
+          for rid in linux-x64 linux-arm64 linux-musl-x64 linux-musl-arm64 win-x64 win-arm64 osx-x64 osx-arm64; do
+            echo "Packing Icu4C.Runtime.$rid"
+            dotnet pack src/Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj -c Release -o nupkg -p:IcuRid=$rid
+          done
 
       - uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,10 @@
+﻿<Project>
+
+  <!-- Slim package for RID linux-musl-arm64 only. -->
+  <PropertyGroup>
+    <_IcuPackageRid>linux-musl-arm64</_IcuPackageRid>
+    <_IcuSupportedRids>linux-musl-arm64</_IcuSupportedRids>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)_IcuRuntimeCore.targets" />
+
+</Project>
