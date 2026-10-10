@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Icu4C.Runtime/Icu4C.Runtime.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Icu4C.Runtime.Tests/Icu4C.Runtime.Tests.csproj" />
+    <Project Path="tests/IcuAotTest/IcuAotTest.csproj" />
+    <Project Path="tests/IcuJitTest/IcuJitTest.csproj" />
+  </Folder>
+</Solution>

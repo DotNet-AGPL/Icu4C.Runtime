@@ -1,0 +1,110 @@
+name: Build
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build-native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            os: ubuntu-24.04
+            kind: linux-glibc
+          - rid: linux-arm64
+            os: ubuntu-24.04-arm
+            kind: linux-glibc
+          - rid: linux-musl-x64
+            os: ubuntu-24.04
+            kind: linux-musl
+            container: alpine:3.20
+          - rid: linux-musl-arm64
+            os: ubuntu-24.04-arm
+            kind: linux-musl
+            container: alpine:3.20
+          - rid: win-x64
+            os: windows-2022
+            kind: win
+          - rid: win-arm64
+            os: windows-2022
+            kind: win
+          - rid: osx-x64
+            os: macos-13
+            kind: osx
+          - rid: osx-arm64
+            os: macos-14
+            kind: osx
+
+    runs-on: ${{ matrix.os }}
+    env:
+      # GitHub-hosted runners reach github.com directly; no download proxy needed.
+      ICU_GH_PROXY: "-"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ICU (Linux, glibc)
+        if: matrix.kind == 'linux-glibc'
+        run: ./scripts/build-icu-linux.sh 77.1 ${{ matrix.rid }}
+
+      - name: Build ICU (Linux, musl)
+        if: matrix.kind == 'linux-musl'
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/work" -w /work \
+            ${{ matrix.container }} sh -c "
+              apk add --no-cache build-base curl python3 bash linux-headers &&
+              bash ./scripts/build-icu-linux.sh 77.1 ${{ matrix.rid }}
+            "
+
+      - name: Build ICU (Windows)
+        if: matrix.kind == 'win'
+        shell: pwsh
+        run: ./scripts/build-icu-windows.ps1 77.1 ${{ matrix.rid }}
+
+      - name: Build ICU (macOS)
+        if: matrix.kind == 'osx'
+        run: ./scripts/build-icu-macos.sh 77.1 ${{ matrix.rid }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.rid }}
+          path: runtimes/${{ matrix.rid }}/native/
+
+  pack:
+    needs: build-native
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: runtimes
+          pattern: native-*
+
+      - name: Restructure artifacts
+        run: |
+          for dir in runtimes/native-*; do
+            rid="${dir#runtimes/native-}"
+            mkdir -p "runtimes/${rid}/native"
+            mv "${dir}"/* "runtimes/${rid}/native/"
+            rmdir "${dir}"
+          done
+          find runtimes -type f | sort
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Pack
+        run: dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: nupkg/*.nupkg
+
+      - name: Push
+        if: startsWith(github.ref, 'refs/tags/')
+        run: dotnet nuget push nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
