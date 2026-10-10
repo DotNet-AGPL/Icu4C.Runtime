@@ -72,6 +72,12 @@ SOURCE="${WORK_DIR}/icu/source"
 
 CONFIGURE_ARGS=(--with-data-packaging=dll --disable-samples --disable-tests)
 
+# Statically link the C++ runtime so the shared libraries do not depend on the host's
+# libstdc++.so.6 / libgcc_s.so.1 (the Linux analogue of bundling the VC++ runtime on
+# Windows). Combined with building inside an older baseline container this keeps the
+# glibc + GLIBCXX version floor low, so the libraries load on older distros too.
+export LDFLAGS="${LDFLAGS:-} -static-libstdc++ -static-libgcc"
+
 if is_native; then
   BUILD_DIR="${WORK_DIR}/build"
   mkdir -p "${BUILD_DIR}"
