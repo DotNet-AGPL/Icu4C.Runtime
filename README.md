@@ -15,7 +15,7 @@ globalization (ICU) support in **JIT and Native AOT**, without relying on a host
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="74.2.0" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.0" />
 </ItemGroup>
 ```
 
@@ -72,7 +72,7 @@ See `scripts/verify-local.sh`. It publishes the JIT and AOT test apps and runs t
 
 ## Versioning
 
-Package version is `{icu-major}.{icu-minor}.{build}` (e.g. `74.2.0` for ICU 74.2). The ICU version
+Package version is `{icu-major}.{icu-minor}.{build}` (e.g. `77.1.0` for ICU 77.1). The ICU version
 used by the targets must match the bundled binaries; the release pipeline is responsible for keeping
 `_IcuVersion` in `build*/Icu4C.Runtime.targets` in sync.
 

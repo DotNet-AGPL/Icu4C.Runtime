@@ -7,6 +7,7 @@
     <Authors>YourOrg</Authors>
     <Description>AppLocal ICU4C runtime binaries for .NET. Supports JIT and Native AOT without host ICU dependency.</Description>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/YourOrg/Icu4C.Runtime</PackageProjectUrl>
     <RepositoryUrl>https://github.com/YourOrg/Icu4C.Runtime</RepositoryUrl>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -21,6 +22,7 @@
     <None Include="..\..\runtimes\**" Pack="true" PackagePath="runtimes\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE')" />
     <None Include="..\..\LICENSE-ICU" Pack="true" PackagePath="\" Condition="Exists('..\..\LICENSE-ICU')" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Condition="Exists('..\..\README.md')" />
   </ItemGroup>
 
 </Project>
