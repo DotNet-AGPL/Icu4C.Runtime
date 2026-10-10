@@ -18,3 +18,8 @@ runtimes/
 Thumbs.db
 
 .nuget/
+
+## Secrets (never commit)
+.env
+.env.*
+*.env
