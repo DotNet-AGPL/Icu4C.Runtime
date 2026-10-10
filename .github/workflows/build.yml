@@ -77,15 +77,17 @@ jobs:
       - name: Build ICU (Linux, glibc)
         if: matrix.kind == 'linux-glibc'
         run: |
-          # Build on an older glibc baseline (Debian 11 / glibc 2.31) so the produced
-          # libraries load on Debian 11+, Ubuntu 20.04+, RHEL/Alma/Rocky 9, Debian 12, etc.
-          # Building on a newer distro (e.g. ubuntu-24.04 / glibc 2.39) leaks a
-          # GLIBC_2.38 requirement that breaks older targets.
+          # Build on an older glibc baseline (AlmaLinux 8 / glibc 2.28) with a modern
+          # toolchain (gcc-toolset-13) so the libraries load on Debian 11+, Ubuntu 20.04+,
+          # RHEL/Alma/Rocky 8-9, Amazon Linux 2, Debian 12, etc. Building on ubuntu-24.04
+          # (glibc 2.39) leaked a GLIBC_2.38 requirement that breaks older targets.
           docker run --rm -v "${{ github.workspace }}:/work" -w /work \
             -e ICU_GH_PROXY=- -e ICU_CACHE_DIR=/work/.icu-cache \
-            debian:11-slim sh -c "
-              apt-get update &&
-              DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential curl ca-certificates &&
+            almalinux:8 bash -c "
+              set -e
+              dnf install -y gcc-toolset-13-gcc-c++ make curl
+              source /opt/rh/gcc-toolset-13/enable
+              gcc --version | head -1
               bash ./scripts/build-icu-linux.sh 77.1 ${{ matrix.rid }}
             "
 
