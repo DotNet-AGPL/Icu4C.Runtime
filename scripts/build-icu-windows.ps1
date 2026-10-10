@@ -6,6 +6,11 @@
   Requires Visual Studio (MSBuild) with the C++ toolset. Downloads the ICU source,
   builds the allinone solution, and copies icuucNN.dll / icuinNN.dll / icudtNN.dll.
 
+  The ICU DLLs use the DLL C runtime (/MD) and therefore depend on the MSVC runtime
+  DLLs (msvcp140.dll / vcruntime140*.dll). App-local copies of the Microsoft Visual C++
+  2015-2022 Redistributable are staged next to them, so consumers do NOT need the
+  VC++ Redistributable installed. These files are redistributable with an application.
+
 .PARAMETER IcuVersion
   ICU version, e.g. 77.1 (default).
 
@@ -66,9 +71,9 @@ try {
   $Solution = Join-Path $Source "allinone/allinone.sln"
 
   # Locate MSBuild (from VS install) if not on PATH.
+  $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio/Installer/vswhere.exe"
   $MSBuild = "msbuild"
   if (-not (Get-Command msbuild -ErrorAction SilentlyContinue)) {
-    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio/Installer/vswhere.exe"
     if (Test-Path $vswhere) {
       $MSBuild = (& $vswhere -latest -requires Microsoft.Component.MSBuild -find "MSBuild/**/Bin/MSBuild.exe" | Select-Object -First 1)
     }
@@ -112,6 +117,55 @@ try {
     if (Test-Path $src) { Copy-Item $src $OutDir -Force }
     else { Write-Warning "Not found: $src" }
   }
+
+  # --- App-local MSVC runtime (so consumers do NOT need the VC++ Redistributable) ---
+  Write-Host "Staging app-local MSVC runtime DLLs ..."
+  $vsArch = switch ($Platform) { "x64" { "x64" } "ARM64" { "arm64" } "Win32" { "x86" } default { $Platform } }
+  $runtimeBaseNames  = @("msvcp140", "msvcp140_1", "msvcp140_2", "msvcp140_atomic_wait",
+                         "msvcp140_codecvt_ids", "vcruntime140", "vcruntime140_1")
+  $requiredBaseNames = @("msvcp140", "vcruntime140", "vcruntime140_1")
+
+  $crtDir = $null
+  if (Test-Path $vswhere) {
+    $vsRoot = & $vswhere -latest -products * -property installationPath | Select-Object -First 1
+    if (-not [string]::IsNullOrEmpty($vsRoot)) {
+      $crtDir = Get-ChildItem (Join-Path $vsRoot "VC/Redist/MSVC") -Recurse -Directory -Filter "Microsoft.VC*.CRT" -ErrorAction SilentlyContinue |
+                Where-Object {
+                  $_.FullName -match "\\$vsArch\\" -and
+                  $_.FullName -notmatch '\\onecore\\' -and
+                  (Test-Path (Join-Path $_.FullName "msvcp140.dll"))
+                } |
+                Select-Object -First 1 -ExpandProperty FullName
+    }
+  }
+  if ([string]::IsNullOrEmpty($crtDir)) {
+    throw "Could not locate the MSVC redistributable CRT for $vsArch under the Visual Studio installation."
+  }
+  Write-Host "  source: $crtDir"
+
+  foreach ($b in $runtimeBaseNames) {
+    $src = Join-Path $crtDir "$b.dll"
+    if (Test-Path $src) { Copy-Item $src $OutDir -Force }
+    elseif ($requiredBaseNames -contains $b) { throw "Missing required MSVC runtime DLL: $src" }
+    else { Write-Warning "Optional MSVC runtime DLL not found: $b.dll" }
+  }
+
+  # Verify every MSVC runtime DLL imported by the ICU DLLs is staged next to them.
+  $missing = @()
+  foreach ($name in @("icuuc$IcuMajor.dll", "icuin$IcuMajor.dll")) {
+    $f = Join-Path $OutDir $name
+    if (-not (Test-Path $f)) { continue }
+    $ascii = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes($f)).ToLowerInvariant()
+    foreach ($b in $runtimeBaseNames) {
+      if ($ascii.Contains($b) -and -not (Test-Path (Join-Path $OutDir "$b.dll"))) {
+        $missing += "$name imports $b.dll (not staged)"
+      }
+    }
+  }
+  if ($missing.Count -gt 0) {
+    throw "App-local MSVC runtime is incomplete: $($missing -join '; ')"
+  }
+  Write-Host "  MSVC runtime dependency check OK."
 
   Write-Host "Result:"
   Get-ChildItem $OutDir | Format-Table Name, Length

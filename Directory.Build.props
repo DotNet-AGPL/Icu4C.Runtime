@@ -10,7 +10,7 @@
            - The ICU shared library keeps its own version (77.1 -> libicu*.so.77.1); the package
              version does NOT change the .so name.
            - The ICU version used for AppLocalIcu stays independent (in the package targets). -->
-    <IcuPackageVersion Condition="'$(IcuPackageVersion)' == ''">77.1.1</IcuPackageVersion>
+    <IcuPackageVersion Condition="'$(IcuPackageVersion)' == ''">77.1.2</IcuPackageVersion>
   </PropertyGroup>
 
 </Project>

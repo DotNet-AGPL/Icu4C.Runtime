@@ -27,6 +27,7 @@
     <None Include="../../build-slim/Icu4C.Runtime.$(IcuRid).targets" Pack="true" PackagePath="build/" />
     <None Include="../../LICENSE" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE')" />
     <None Include="../../LICENSE-ICU" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE-ICU')" />
+    <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="/" Condition="Exists('../../THIRD-PARTY-NOTICES.md')" />
     <None Include="../../README-SLIM.md" Pack="true" PackagePath="/" Condition="Exists('../../README-SLIM.md')" />
   </ItemGroup>
 
