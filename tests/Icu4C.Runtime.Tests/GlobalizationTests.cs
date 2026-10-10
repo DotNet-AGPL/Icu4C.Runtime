@@ -24,8 +24,9 @@ public class GlobalizationTests
     [Fact]
     public void String_Comparison_Uses_Culture()
     {
-        // Under ICU zh-CN ("zh" < "李" by pinyin), "张三" sorts before "李四".
-        Assert.True(string.Compare("张三", "李四", StringComparison.CurrentCulture) < 0);
+        // Under ICU zh-CN collation (pinyin), 李 "li" sorts before 张 "zhang".
+        var zh = new CultureInfo("zh-CN");
+        Assert.True(string.Compare("张三", "李四", false, zh) > 0);
     }
 
     [Fact]

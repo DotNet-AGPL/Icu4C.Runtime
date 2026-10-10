@@ -12,7 +12,7 @@ Reference the package that matches your target RID, e.g. for `linux-x64`:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.1" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.2" />
 </ItemGroup>
 ```
 
@@ -20,8 +20,8 @@ For multiple RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.1" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.1" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.2" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.2" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -36,7 +36,12 @@ The package's `build/` targets:
 
 When the package is used while building for a different RID, it is a silent no-op.
 
+On Windows, this package also bundles app-local copies of the Microsoft Visual C++ 2015-2022 runtime
+(required by the ICU DLLs), so **no VC++ Redistributable needs to be installed**.
+
 ## License
 
 - This project is licensed under **AGPL-3.0-only** (see `LICENSE`).
 - The bundled ICU binaries are licensed under the **Unicode License v3** (see `LICENSE-ICU`).
+- The Windows packages additionally bundle the Microsoft Visual C++ Redistributable runtime DLLs,
+  under Microsoft's own license terms (see `THIRD-PARTY-NOTICES.md`).

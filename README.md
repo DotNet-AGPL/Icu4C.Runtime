@@ -24,13 +24,17 @@ one-line, works-everywhere setup, or reference a single platform package to keep
 | `Icu4C.Runtime.win-x64` · `.win-arm64` | natives (one RID each) + `build/` targets |
 | `Icu4C.Runtime.osx-x64` · `.osx-arm64` | natives (one RID each) + `build/` targets |
 
+On Windows, the platform packages also bundle app-local copies of the Microsoft Visual C++ 2015-2022
+runtime (which the ICU DLLs require), so **no VC++ Redistributable needs to be installed**. See
+`THIRD-PARTY-NOTICES.md`.
+
 ## Usage
 
 Meta (one reference; works on every RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.1" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.2" />
 </ItemGroup>
 ```
 
@@ -38,7 +42,7 @@ Single platform (smaller restore, known target RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.1" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.2" />
 </ItemGroup>
 ```
 
@@ -46,8 +50,8 @@ For several RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.1" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.1" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.2" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.2" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -110,7 +114,8 @@ ICU binaries are produced per RID and placed under `runtimes/<rid>/native/`.
 
 - Linux (glibc/musl), from source: `scripts/build-icu-linux.sh <icu-version> <rid>`
 - Linux quick extraction (validation only): `scripts/extract-icu-linux.sh <rid> <ubuntu-version> <pkg>`
-- Windows: `scripts/build-icu-windows.ps1 <icu-version> <rid>`
+- Windows: `scripts/build-icu-windows.ps1 <icu-version> <rid>` (also stages the app-local MSVC
+  runtime DLLs next to the ICU DLLs, and fails if the runtime closure is incomplete)
 - macOS: `scripts/build-icu-macos.sh <icu-version> <rid>`
 
 The scripts honor `ICU_CACHE_DIR` (reuse the downloaded source) and `ICU_GH_PROXY` (GitHub proxy
@@ -129,8 +134,12 @@ dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
 
 ## Local verification
 
-See `scripts/verify-local.sh`. ICU is loaded via `dlopen`, so `ldd | grep icu` will not show it —
-rely on the app output and, for AOT, on `readelf -d` showing an `$ORIGIN` runpath.
+- Linux: `scripts/verify-local.sh` (container-based). ICU is loaded via `dlopen`, so
+  `ldd | grep icu` will not show it — rely on the app output and, for AOT, on `readelf -d` showing an
+  `$ORIGIN` runpath.
+- Windows: `scripts/verify-windows.ps1` — publishes and runs the JIT test in RID-specific and
+  portable modes and checks that the app-local MSVC runtime closure is complete; it also runs the
+  Native AOT test when the MSVC toolset + Windows SDK are available.
 
 ## Versioning
 
@@ -169,3 +178,6 @@ test projects consume it.
   **GNU Affero General Public License v3.0** (AGPL-3.0-only). See [LICENSE](LICENSE).
 - The bundled ICU binaries are licensed under the **Unicode License v3**. See
   [LICENSE-ICU](LICENSE-ICU). Redistribution must retain that copyright notice.
+- The Windows packages additionally bundle the Microsoft Visual C++ Redistributable runtime DLLs,
+  which remain under Microsoft's own license terms. See
+  [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

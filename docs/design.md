@@ -18,7 +18,7 @@
 | 包 | 内容 | 说明 |
 |---|---|---|
 | `Icu4C.Runtime`（meta） | 无二进制；依赖 8 个平台包 + `buildTransitive/` targets | 极小（~19KB） |
-| `Icu4C.Runtime.<rid>`（平台包） | 单个 RID 的 native + `build/` targets | ≈15MB |
+| `Icu4C.Runtime.<rid>`（平台包） | 单个 RID 的 native + `build/` targets | ≈15MB（Windows 包含 VC 运行库后略大） |
 
 - 二进制**只存于平台包一份**（meta 不含二进制）。
 - NuGet 不能按 RID 过滤依赖 → 引用 meta 会**还原全部 8 个平台包**（≈119MB）；但**指定 RID 的发布产物只含目标 RID**，便携发布含全部 RID。
@@ -37,6 +37,7 @@
 | meta 与平台包 | meta 用 `buildTransitive/`（作用于消费方）；平台包用 `build/`（**仅直接引用生效**，避免被 meta 传递导入造成重复/告警） |
 | 版本来源 | 包版本单一来源 `Directory.Build.props`；ICU 版本独立于包版本 |
 | 多包发布 | 一次 CI 产出 9 个包；发布为手工控制 |
+| Windows CRT | ICU 保持 /MD；随平台包内置 **app-local VC++ 运行库**（消费方无需安装 VC++ 再发行组件） |
 
 ---
 
@@ -53,9 +54,10 @@ Icu4C.Runtime/
 ├── scripts/
 │   ├── build-icu-linux.sh                    # glibc 原生/交叉、musl 源码编译
 │   ├── extract-icu-linux.sh                  # 从 Ubuntu 容器快速提取（仅验证用）
-│   ├── build-icu-windows.ps1                 # MSVC 构建（ARM64 先建 x64 宿主工具）
+│   ├── build-icu-windows.ps1                 # MSVC 构建（ARM64 先建宿主工具）+ 随包 VC 运行库
 │   ├── build-icu-macos.sh                    # macOS 构建 + install_name_tool
-│   └── verify-local.sh                       # 容器内 JIT/AOT 验证
+│   ├── verify-local.sh                       # 容器内 JIT/AOT 验证（Linux）
+│   └── verify-windows.ps1                    # Windows JIT(RID/便携) + 运行库闭包验证
 ├── src/
 │   ├── Icu4C.Runtime/Icu4C.Runtime.csproj         # meta 包（依赖 8 个平台包）
 │   └── Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj  # 平台包（-p:IcuRid=...）
@@ -64,6 +66,7 @@ Icu4C.Runtime/
 ├── runtimes/<rid>/native/                    # 原生库（由脚本/CI 生成，不入库）
 ├── README.md · README-SLIM.md
 ├── LICENSE (AGPL-3.0-only) · LICENSE-ICU (Unicode-3.0)
+├── THIRD-PARTY-NOTICES.md                     # MS VC++ 运行库声明（Windows 包）
 └── nuget.config
 ```
 
@@ -107,7 +110,7 @@ Icu4C.Runtime/
 | 平台 | 文件名 |
 |---|---|
 | Linux | `libicuuc.so.<ver>`、`libicui18n.so.<ver>`、`libicudata.so.<ver>` |
-| Windows | `icuucNN.dll`、`icuinNN.dll`、`icudtNN.dll`（NN=主版本） |
+| Windows | `icuucNN.dll`、`icuinNN.dll`、`icudtNN.dll`（NN=主版本）+ 内置 `msvcp140*.dll`、`vcruntime140*.dll` |
 | macOS | `libicuuc.<ver>.dylib`、`libicui18n.<ver>.dylib`、`libicudata.<ver>.dylib` |
 
 ---
@@ -115,7 +118,7 @@ Icu4C.Runtime/
 ## 7. 原生库构建脚本
 
 - `build-icu-linux.sh <icu-version> <rid>`：glibc 原生化或两段式交叉（先建 x64 宿主工具，再 `--with-cross-build`）；musl 在 Alpine 原生编译。支持 `ICU_CACHE_DIR`、`ICU_GH_PROXY`。
-- `build-icu-windows.ps1 <icu-version> <rid>`：VS/MSBuild 构建 `allinone.sln`；非 x64 先构建 x64 宿主工具；产物从 `<workdir>/icu/bin64|binARM64` 拷贝。
+- `build-icu-windows.ps1 <icu-version> <rid>`：VS/MSBuild 构建 `allinone.sln`；非 x64 先构建 x64 宿主工具；产物从 `<workdir>/icu/bin64|binARM64` 拷贝。随后把 **VC++ 2015-2022 运行库**（`msvcp140*.dll`、`vcruntime140*.dll`）从 VS Redist 目录一并放入 `runtimes/<rid>/native/`，并校验 ICU DLL 导入的运行库均已就位（否则构建失败）。
 - `build-icu-macos.sh <icu-version> <rid>`：`runConfigureICU MacOSX` + `install_name_tool` 改写为 `@loader_path/...`。
 - `extract-icu-linux.sh`：仅用于快速验证。
 
@@ -154,8 +157,8 @@ Icu4C.Runtime/
 
 ## 10. 本地验证
 
-- JIT：`dotnet publish -r <rid>` 后在 `mcr.microsoft.com/dotnet/runtime:10.0` 运行。
-- AOT：在 Linux SDK 容器内 `dotnet publish -r <rid>`，后在 `runtime-deps:10.0` 运行。
+- Linux：`dotnet publish -r <rid>` 后在 `mcr.microsoft.com/dotnet/runtime:10.0` 运行；AOT 在 SDK 容器内发布，后在 `runtime-deps:10.0` 运行。
+- Windows：`scripts/verify-windows.ps1` —— RID 发布与便携发布均运行 JIT 测试，并校验发布产物里 ICU DLL 依赖的 VC 运行库是否齐备（本机有 MSVC + Windows SDK 时另跑 AOT）。
 - 关键判据：应用输出正确；AOT 的 `readelf -d` 含 `$ORIGIN`。
 - 注意：ICU 系运行时 `dlopen` 加载，`ldd | grep icu` 不会显示；可"移走系统 ICU"证明 app-local 生效。
 - 单测：`dotnet test tests/Icu4C.Runtime.Tests`。
@@ -169,7 +172,9 @@ Icu4C.Runtime/
 - .NET 10 已移除默认 rpath，AOT 必须显式注入。
 - 平台包用 `build/`（非 `buildTransitive/`），否则被 meta 传递导入会重复注入/告警。
 - restore 会下载全部平台包（NuGet 不按 RID 过滤依赖）；发布产物按 RID 过滤。
-- 许可：项目 AGPL-3.0-only；ICU 二进制为 Unicode-3.0，再分发须保留声明。
+- Windows 上 ICU DLL 采用 `/MD`（DLL 版 CRT），依赖 `msvcp140.dll`/`vcruntime140*.dll`；这些运行库随包内置（app-local），消费方**无需**安装 VC++ 可再发行组件。
+- AppLocalIcu 在 Windows 只用「应用目录 + System32」解析：自包含/RID 发布把 DLL 平铺到根目录；便携发布由运行时经原生搜索目录解析 `runtimes/<rid>/native/`（已验证可用）。
+- 许可：项目 AGPL-3.0-only；ICU 二进制为 Unicode-3.0，再分发须保留声明；Windows 包内置的 MS VC++ 运行库遵循微软许可（见 `THIRD-PARTY-NOTICES.md`）。
 
 ---
 
