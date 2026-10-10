@@ -146,9 +146,11 @@ test projects consume it.
 `macos-15-intel` for `osx-x64`, and `windows-2022`):
 
 - runs on **`v*` tags**, on **pull requests** touching build files, and on **manual dispatch**
+- each package is uploaded as its **own artifact** (no giant bundle): `nupkg-core` = the universal
+  package, `pkg-<rid>` = each slim package (~15 MB)
 - **NuGet publishing is manual**: tag pushes and normal runs only build + upload artifacts. To
   publish, run the workflow manually with the `publish` input enabled (requires the `NUGET_API_KEY`
-  repository secret). Otherwise download the `nupkg` artifact and push it yourself:
+  repository secret). Otherwise download the package artifacts and push them yourself:
 
   ```bash
   dotnet nuget push "nupkg/*.nupkg" --api-key <KEY> --source https://api.nuget.org/v3/index.json

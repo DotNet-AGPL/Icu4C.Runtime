@@ -1,7 +1,7 @@
 name: Build
 
 on:
-  # Release: pushing a v* tag builds all RIDs and packs a nupkg (artifacts only; no auto-publish).
+  # Release: pushing a v* tag builds all RIDs and packs the packages (artifacts only; no auto-publish).
   push:
     tags: ['v*']
   # Validation: PRs touching build-relevant files run the full matrix.
@@ -9,14 +9,15 @@ on:
     branches: [main]
     paths:
       - 'scripts/**'
-      - 'build/**'
       - 'buildTransitive/**'
+      - 'buildTransitive-slim/**'
       - 'src/**'
+      - 'Directory.Build.props'
       - '.github/workflows/build.yml'
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publish the packed NuGet package to nuget.org (manual)'
+        description: 'Publish the packed NuGet packages to nuget.org (manual)'
         type: boolean
         default: false
 
@@ -96,10 +97,23 @@ jobs:
         if: matrix.kind == 'osx'
         run: bash ./scripts/build-icu-macos.sh 77.1 ${{ matrix.rid }}
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Pack the slim single-RID package here so each is uploaded as its own artifact.
+      - name: Pack slim package (Icu4C.Runtime.${{ matrix.rid }})
+        run: dotnet pack src/Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj -c Release -o nupkg -p:IcuRid=${{ matrix.rid }}
+
       - uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.rid }}
           path: runtimes/${{ matrix.rid }}/native/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.rid }}
+          path: nupkg/*.nupkg
 
   pack:
     needs: build-native
@@ -126,24 +140,26 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Pack (universal)
+      - name: Pack universal package (Icu4C.Runtime)
         run: dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
-
-      - name: Pack (slim per-RID)
-        run: |
-          for rid in linux-x64 linux-arm64 linux-musl-x64 linux-musl-arm64 win-x64 win-arm64 osx-x64 osx-arm64; do
-            echo "Packing Icu4C.Runtime.$rid"
-            dotnet pack src/Icu4C.Runtime.Slim/Icu4C.Runtime.Slim.csproj -c Release -o nupkg -p:IcuRid=$rid
-          done
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nupkg
+          name: nupkg-core
           path: nupkg/*.nupkg
+
+      - name: Download slim packages (for publishing)
+        uses: actions/download-artifact@v4
+        with:
+          path: nupkg
+          pattern: pkg-*
+          merge-multiple: true
+
+      - name: List packages
+        run: ls -l nupkg
 
       # NuGet publishing is manual: it only runs on a manual workflow_dispatch
       # with the "publish" input enabled, and requires the NUGET_API_KEY secret.
-      # Tag pushes only build + upload artifacts; they never publish.
       - name: Publish to NuGet (manual)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
         env:
