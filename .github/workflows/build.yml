@@ -47,7 +47,7 @@ jobs:
 
       - name: Build ICU (Linux, glibc)
         if: matrix.kind == 'linux-glibc'
-        run: ./scripts/build-icu-linux.sh 77.1 ${{ matrix.rid }}
+        run: bash ./scripts/build-icu-linux.sh 77.1 ${{ matrix.rid }}
 
       - name: Build ICU (Linux, musl)
         if: matrix.kind == 'linux-musl'
@@ -65,7 +65,7 @@ jobs:
 
       - name: Build ICU (macOS)
         if: matrix.kind == 'osx'
-        run: ./scripts/build-icu-macos.sh 77.1 ${{ matrix.rid }}
+        run: bash ./scripts/build-icu-macos.sh 77.1 ${{ matrix.rid }}
 
       - uses: actions/upload-artifact@v4
         with:
