@@ -119,5 +119,23 @@ find "${OUT_DIR}" -type l -delete
 find "${OUT_DIR}" -maxdepth 1 -type f \
   ! -name 'libicuuc.so.*' ! -name 'libicui18n.so.*' ! -name 'libicudata.so.*' -delete
 
+# Make the libraries self-contained within their own directory. AppLocalIcu loads the
+# libraries by their exact file name (libicu*.so.<ver>), and some loaders (notably musl)
+# do NOT resolve a NEEDED "libicudata.so.<major>" from an already-loaded
+# "libicudata.so.<ver>". So reference siblings by the exact shipped file name and add an
+# $ORIGIN rpath so they resolve next to each other (works on glibc and musl alike).
+if ! command -v patchelf >/dev/null 2>&1; then
+  echo "ERROR: patchelf is required to fix inter-library NEEDED names." >&2
+  exit 1
+fi
+for lib in libicuuc libicui18n libicudata; do
+  f="${OUT_DIR}/${lib}.so.${ICU_VERSION}"
+  [ -f "${f}" ] || continue
+  patchelf --set-soname "${lib}.so.${ICU_VERSION}" "${f}"
+  patchelf --replace-needed "libicudata.so.${ICU_MAJOR}" "libicudata.so.${ICU_VERSION}" "${f}" || true
+  patchelf --replace-needed "libicuuc.so.${ICU_MAJOR}"   "libicuuc.so.${ICU_VERSION}"   "${f}" || true
+  patchelf --set-rpath '$ORIGIN' "${f}"
+done
+
 echo "Built ICU ${ICU_VERSION} for ${RID}:"
 ls -lh "${OUT_DIR}"
