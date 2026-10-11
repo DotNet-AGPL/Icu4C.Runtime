@@ -5,7 +5,11 @@
 #
 #   static : glibc floor (<= 2.28), no libstdc++/libgcc_s dependency, exact inter-library
 #            NEEDED names, and an $ORIGIN runpath (the musl-loading fix)
-#   runtime: JIT (linux-x64, linux-musl-x64) and AOT (linux-x64) with the system ICU hidden
+#   native : dlopen the libraries on real distributions without .NET involved
+#            (AlmaLinux 8 / glibc 2.28 = exactly the supported floor, Debian 12 / glibc 2.36,
+#            Alpine 3.20 / musl)
+#   runtime: JIT (linux-x64, linux-musl-x64) and AOT (linux-x64) in the official .NET images
+#            with the system ICU hidden
 #
 set -euo pipefail
 
@@ -48,6 +52,19 @@ for rid in linux-x64 linux-arm64 linux-musl-x64 linux-musl-arm64; do
 done
 if [ "${fail}" -ne 0 ]; then echo "static checks FAILED"; exit 1; fi
 echo "static checks OK (glibc <= 2.28, no C++ runtime deps, exact NEEDED + \$ORIGIN)"
+
+say "native-distro dlopen checks (no .NET)"
+dlopen_native() { # <image> <rid> <install-cmd>
+  local image="$1" rid="$2" install="$3"
+  printf -- '-- %s on %s\n' "${rid}" "${image}"
+  "${ENGINE}" run --rm -v "${REPO_ROOT}:/repo:ro" -v "${STAGE}:/pkg:ro" "${image}" sh -c "
+    ${install} >/dev/null 2>&1
+    python3 /repo/scripts/dlopen-check.py /pkg/${rid}/runtimes/${rid}/native ${ICUVER}
+  "
+}
+dlopen_native almalinux:8  linux-x64      "dnf install -y python3"
+dlopen_native debian:12    linux-x64      "apt-get update -qq && apt-get install -y -qq python3"
+dlopen_native alpine:3.20  linux-musl-x64 "apk add --no-cache python3"
 
 hide_system_icu='for d in /usr/lib/x86_64-linux-gnu /usr/lib /lib/x86_64-linux-gnu; do [ -d "$d" ] && find "$d" -maxdepth 1 -name "libicu*.so*" -exec mv -t /root {} + 2>/dev/null; done; command -v ldconfig >/dev/null && ldconfig 2>/dev/null; echo "system icu: $(ldconfig -p 2>/dev/null | grep -ci icu) entries"'
 
