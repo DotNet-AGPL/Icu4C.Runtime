@@ -68,22 +68,27 @@ dlopen_native alpine:3.20  linux-musl-x64 "apk add --no-cache python3"
 
 hide_system_icu='for d in /usr/lib/x86_64-linux-gnu /usr/lib /lib/x86_64-linux-gnu; do [ -d "$d" ] && find "$d" -maxdepth 1 -name "libicu*.so*" -exec mv -t /root {} + 2>/dev/null; done; command -v ldconfig >/dev/null && ldconfig 2>/dev/null; echo "system icu: $(ldconfig -p 2>/dev/null | grep -ci icu) entries"'
 
-say "JIT: linux-x64"
-dotnet publish tests/IcuJitTest/IcuJitTest.csproj -c Release -r linux-x64 -p:IcuPackageVersion="${VER}" -o pub/ci-jit-x64 >/dev/null
-"${ENGINE}" run --rm --entrypoint sh -v "${PWD}/pub/ci-jit-x64:/app" -w /app mcr.microsoft.com/dotnet/runtime:10.0 \
-  -c "${hide_system_icu}; ./IcuJitTest"
+say "JIT: linux-x64 on debian:12 (self-contained, native distro)"
+dotnet publish tests/IcuJitTest/IcuJitTest.csproj -c Release -r linux-x64 --self-contained -p:IcuPackageVersion="${VER}" -o pub/ci-sc-x64 >/dev/null
+"${ENGINE}" run --rm -v "${PWD}/pub/ci-sc-x64:/app" -w /app --entrypoint sh debian:12 -c './IcuJitTest'
 
-say "JIT: linux-musl-x64"
+say "JIT: linux-musl-x64 on runtime:10.0-alpine"
 dotnet publish tests/IcuJitTest/IcuJitTest.csproj -c Release -r linux-musl-x64 -p:IcuPackageVersion="${VER}" -o pub/ci-jit-musl >/dev/null
 "${ENGINE}" run --rm -e DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false --entrypoint sh \
   -v "${PWD}/pub/ci-jit-musl:/app" -w /app mcr.microsoft.com/dotnet/runtime:10.0-alpine -c './IcuJitTest'
 
-say "AOT: linux-x64"
+say "AOT: linux-x64 on debian:12 (native distro)"
 sudo apt-get update -qq
 sudo apt-get install -y -qq clang zlib1g-dev
 dotnet publish tests/IcuAotTest/IcuAotTest.csproj -c Release -r linux-x64 -p:IcuPackageVersion="${VER}" -o pub/ci-aot-x64 >/dev/null
-"${ENGINE}" run --rm --entrypoint sh -v "${PWD}/pub/ci-aot-x64:/app" -w /app mcr.microsoft.com/dotnet/runtime-deps:10.0 \
-  -c "${hide_system_icu}; ./IcuAotTest"
+"${ENGINE}" run --rm -v "${PWD}/pub/ci-aot-x64:/app" -w /app --entrypoint sh debian:12 -c './IcuAotTest'
+
+say "AOT: linux-musl-x64 on alpine:3.20 (native distro)"
+"${ENGINE}" run --rm -v "${PWD}:/work" -w /work --entrypoint sh mcr.microsoft.com/dotnet/sdk:10.0-alpine -c "
+  apk add --no-cache build-base clang lld zlib-dev binutils >/dev/null
+  dotnet publish tests/IcuAotTest/IcuAotTest.csproj -c Release -r linux-musl-x64 -p:IcuPackageVersion='${VER}' -o pub/ci-aot-musl >/dev/null
+"
+"${ENGINE}" run --rm -v "${PWD}/pub/ci-aot-musl:/app" -w /app --entrypoint sh alpine:3.20 -c './IcuAotTest'
 
 echo ""
 echo "ALL LINUX CHECKS PASSED"
