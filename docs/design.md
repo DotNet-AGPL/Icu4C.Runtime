@@ -186,3 +186,4 @@ Icu4C.Runtime/
 - [ICU 官方源码](https://github.com/unicode-org/icu)
 - [.NET AppLocal ICU 文档](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/globalization)
 - [NuGet 版本格式](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning)
+- [原生运行时依赖的可移植性：VC++ / glibc / libstdc++ / libgcc_s](./native-dependency-portability.md)（本项目踩坑沉淀，通用可复用）
