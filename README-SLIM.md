@@ -12,7 +12,7 @@ Reference the package that matches your target RID, e.g. for `linux-x64`:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.3" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" />
 </ItemGroup>
 ```
 
@@ -20,8 +20,8 @@ For multiple RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.3" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.3" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -41,7 +41,7 @@ On Windows, this package also bundles app-local copies of the Microsoft Visual C
 
 ## License
 
-- This project is licensed under **AGPL-3.0-only** (see `LICENSE`).
+- This project is licensed under **Apache-2.0** (see `LICENSE`).
 - The bundled ICU binaries are licensed under the **Unicode License v3** (see `LICENSE-ICU`).
 - The Windows packages additionally bundle the Microsoft Visual C++ Redistributable runtime DLLs,
   under Microsoft's own license terms (see `THIRD-PARTY-NOTICES.md`).

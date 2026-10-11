@@ -34,7 +34,7 @@ Meta (one reference; works on every RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.3" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.4" />
 </ItemGroup>
 ```
 
@@ -42,7 +42,7 @@ Single platform (smaller restore, known target RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.3" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" />
 </ItemGroup>
 ```
 
@@ -50,8 +50,8 @@ For several RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.3" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.3" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -178,7 +178,7 @@ Package version is `{icu-major}.{icu-minor}.{revision}` — the first two parts 
 the third is the packaging revision (starts at 1):
 
 - `77.1.1` — first release for ICU 77.1
-- `77.1.2`, `77.1.3`, … — bugfix / repack releases of the **same** ICU 77.1
+- `77.1.2`, `77.1.3`, `77.1.4`, … — bugfix / repack releases of the **same** ICU 77.1
 
 The version is defined once in `Directory.Build.props` as `<IcuPackageVersion>`; all packages and the
 test projects consume it.
@@ -206,7 +206,7 @@ test projects consume it.
 ## License
 
 - This project (`Icu4C.Runtime` build scripts, targets, and packaging) is licensed under the
-  **GNU Affero General Public License v3.0** (AGPL-3.0-only). See [LICENSE](LICENSE).
+  **Apache License 2.0** (Apache-2.0). See [LICENSE](LICENSE).
 - The bundled ICU binaries are licensed under the **Unicode License v3**. See
   [LICENSE-ICU](LICENSE-ICU). Redistribution must retain that copyright notice.
 - The Windows packages additionally bundle the Microsoft Visual C++ Redistributable runtime DLLs,

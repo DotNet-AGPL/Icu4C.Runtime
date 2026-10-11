@@ -9,7 +9,7 @@
     <Version>$(IcuPackageVersion)</Version>
     <Authors>DotNet-AGPL</Authors>
     <Description>AppLocal ICU4C for .NET (meta package). Depends on the per-RID Icu4C.Runtime.&lt;rid&gt; packages; supports JIT and Native AOT.</Description>
-    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/DotNet-AGPL/Icu4C.Runtime</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DotNet-AGPL/Icu4C.Runtime</RepositoryUrl>

@@ -65,7 +65,7 @@ Icu4C.Runtime/
 │   ├── IcuJitTest/ · IcuAotTest/ · Icu4C.Runtime.Tests/
 ├── runtimes/<rid>/native/                    # 原生库（由脚本/CI 生成，不入库）
 ├── README.md · README-SLIM.md
-├── LICENSE (AGPL-3.0-only) · LICENSE-ICU (Unicode-3.0)
+├── LICENSE (Apache-2.0) · LICENSE-ICU (Unicode-3.0)
 ├── THIRD-PARTY-NOTICES.md                     # MS VC++ 运行库声明（Windows 包）
 └── nuget.config
 ```
@@ -177,7 +177,7 @@ Icu4C.Runtime/
 - Linux(glibc) 在 **AlmaLinux 8（glibc 2.28）** 基线构建：要求 glibc ≥2.28，覆盖 Debian 11-12、Ubuntu 20.04+、RHEL/Alma/Rocky 8-9、Amazon Linux 2/2023。
 - Linux 均 `-static-libstdc++ -static-libgcc`（去除 `libstdc++`/`libgcc_s` 依赖）；并用 `patchelf` 让库间依赖引用**精确文件名** + `$ORIGIN` rpath（musl 不做 SONAME 匹配，否则报 `Failed to load app-local ICU`）。
 - Alpine 官方 .NET 镜像默认 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true`，需覆盖为 `false` 才会启用 ICU。
-- 许可：项目 AGPL-3.0-only；ICU 二进制为 Unicode-3.0，再分发须保留声明；Windows 包内置的 MS VC++ 运行库遵循微软许可（见 `THIRD-PARTY-NOTICES.md`）。
+- 许可：项目 Apache-2.0；ICU 二进制为 Unicode-3.0，再分发须保留声明；Windows 包内置的 MS VC++ 运行库遵循微软许可（见 `THIRD-PARTY-NOTICES.md`）。
 
 ---
 

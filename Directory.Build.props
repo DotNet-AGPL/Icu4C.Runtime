@@ -5,12 +5,12 @@
          Scheme: <icu-major>.<icu-minor>.<revision> — the first two parts track the ICU
          version, the third is the packaging revision (starts at 1):
              ICU 77.1 release 1 : 77.1.1
-             then fixes         : 77.1.2, 77.1.3, ...
+             then fixes         : 77.1.2, 77.1.3, 77.1.4, ...
          Notes:
            - The ICU shared library keeps its own version (77.1 -> libicu*.so.77.1); the package
              version does NOT change the .so name.
            - The ICU version used for AppLocalIcu stays independent (in the package targets). -->
-    <IcuPackageVersion Condition="'$(IcuPackageVersion)' == ''">77.1.3</IcuPackageVersion>
+    <IcuPackageVersion Condition="'$(IcuPackageVersion)' == ''">77.1.4</IcuPackageVersion>
   </PropertyGroup>
 
 </Project>
