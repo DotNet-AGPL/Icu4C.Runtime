@@ -59,7 +59,7 @@ glibc / musl、x64 / arm64、三大操作系统全覆盖。
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.3" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.4" />
 </ItemGroup>
 ```
 
@@ -89,7 +89,7 @@ meta 包虽然方便，但因为 **NuGet 无法按 RID 过滤依赖**，引用�
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.3" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" />
 </ItemGroup>
 ```
 
@@ -97,8 +97,8 @@ meta 包虽然方便，但因为 **NuGet 无法按 RID 过滤依赖**，引用�
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.3" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.3" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -123,7 +123,7 @@ meta 包虽然方便，但因为 **NuGet 无法按 RID 过滤依赖**，引用�
 - 版本上有两个概念：
   - **包版本**：`77.1.N`（前两段是 ICU 版本，第三段是打包修订，从 1 开始）；
   - **ICU 库版本**：`77.1`（对应文件名 `libicu*.so.77.1`、`libicu*.77.1.dylib`、`icuuc77.dll`）。
-  两者独立——包修 bug 升级到 `77.1.3`，库文件名不变。
+  两者独立——包修 bug 升级到 `77.1.4`，库文件名不变。
 
 ---
 
@@ -164,11 +164,11 @@ ICU 二进制是 Unicode License v3，再分发保留版权声明即可（包里
 **快速开始**
 
 ```bash
-dotnet add package Icu4C.Runtime --version 77.1.3
+dotnet add package Icu4C.Runtime --version 77.1.4
 ```
 
 - NuGet：https://www.nuget.org/packages/Icu4C.Runtime
 - 单平台：`Icu4C.Runtime.linux-x64`、`Icu4C.Runtime.win-x64`、`Icu4C.Runtime.osx-arm64` …（同名规则）
 - 源码：https://github.com/DotNet-AGPL/Icu4C.Runtime
 
-> 许可证：项目 AGPL-3.0-only；随包分发的 ICU 为 Unicode License v3。
+> 许可证：项目 Apache-2.0；随包分发的 ICU 为 Unicode License v3。

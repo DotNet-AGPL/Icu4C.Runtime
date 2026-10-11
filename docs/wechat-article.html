@@ -48,7 +48,7 @@ win-x64,  win-arm64,  osx-x64,        osx-arm64
 <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;">
 <h2 style="font-size: 19px; font-weight: bold; margin: 24px 0 12px; color: #1a1a1a; padding-left: 10px; border-left: 4px solid #07c160;">三、最快用法：一行搞定</h2>
 <pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-xml" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">&lt;ItemGroup&gt;
-  &lt;PackageReference Include=&quot;Icu4C.Runtime&quot; Version=&quot;77.1.3&quot; /&gt;
+  &lt;PackageReference Include=&quot;Icu4C.Runtime&quot; Version=&quot;77.1.4&quot; /&gt;
 &lt;/ItemGroup&gt;
 </code></pre>
 <p style="margin: 14px 0;">就这一行。它是个 <strong style="font-weight: bold; color: #1a1a1a;">meta 包</strong>：本身不含二进制，而是<strong style="font-weight: bold; color: #1a1a1a;">依赖 8 个按平台拆分的包</strong>，把对应平台的 ICU 带进来。</p>
@@ -67,13 +67,13 @@ win-x64,  win-arm64,  osx-x64,        osx-arm64
 <p style="margin: 14px 0;">meta 包虽然方便，但因为 <strong style="font-weight: bold; color: #1a1a1a;">NuGet 无法按 RID 过滤依赖</strong>，引用它会把 8 个平台包<strong style="font-weight: bold; color: #1a1a1a;">全部还原</strong>（约 120MB 下载）。</p>
 <p style="margin: 14px 0;">如果你的目标平台是明确的，直接引用<strong style="font-weight: bold; color: #1a1a1a;">单个平台包</strong>，只下约 15MB：</p>
 <pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-xml" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">&lt;ItemGroup&gt;
-  &lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.3&quot; /&gt;
+  &lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.4&quot; /&gt;
 &lt;/ItemGroup&gt;
 </code></pre>
 <p style="margin: 14px 0;">多平台时代码里条件引用即可：</p>
 <pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-xml" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">&lt;ItemGroup&gt;
-  &lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.3&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;linux-x64&#39;&quot; /&gt;
-  &lt;PackageReference Include=&quot;Icu4C.Runtime.win-x64&quot;   Version=&quot;77.1.3&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;win-x64&#39;&quot; /&gt;
+  &lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.4&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;linux-x64&#39;&quot; /&gt;
+  &lt;PackageReference Include=&quot;Icu4C.Runtime.win-x64&quot;   Version=&quot;77.1.4&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;win-x64&#39;&quot; /&gt;
 &lt;/ItemGroup&gt;
 </code></pre>
 <blockquote style="margin: 16px 0; padding: 10px 14px; border-left: 4px solid #d0d0d0; background: #f7f7f7; color: #666666;">
@@ -109,7 +109,7 @@ win-x64,  win-arm64,  osx-x64,        osx-arm64
 <li style="margin: 6px 0;">版本上有两个概念：<ul style="margin: 12px 0; padding-left: 26px;">
 <li style="margin: 6px 0;"><strong style="font-weight: bold; color: #1a1a1a;">包版本</strong>：<code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">77.1.N</code>（前两段是 ICU 版本，第三段是打包修订，从 1 开始）；</li>
 <li style="margin: 6px 0;"><strong style="font-weight: bold; color: #1a1a1a;">ICU 库版本</strong>：<code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">77.1</code>（对应文件名 <code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">libicu*.so.77.1</code>、<code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">libicu*.77.1.dylib</code>、<code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">icuuc77.dll</code>）。
-两者独立——包修 bug 升级到 <code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">77.1.3</code>，库文件名不变。</li>
+两者独立——包修 bug 升级到 <code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">77.1.4</code>，库文件名不变。</li>
 </ul>
 </li>
 </ul>
@@ -139,7 +139,7 @@ ICU 二进制是 Unicode License v3，再分发保留版权声明即可（包里
 <li style="margin: 6px 0;">想省下载就用单平台包。</li>
 </ul>
 <p style="margin: 14px 0;"><strong style="font-weight: bold; color: #1a1a1a;">快速开始</strong></p>
-<pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-bash" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">dotnet add package Icu4C.Runtime --version 77.1.3
+<pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-bash" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">dotnet add package Icu4C.Runtime --version 77.1.4
 </code></pre>
 <ul style="margin: 12px 0; padding-left: 26px;">
 <li style="margin: 6px 0;">NuGet：<a href="https://www.nuget.org/packages/Icu4C.Runtime" style="color: #576b95; text-decoration: none;">https://www.nuget.org/packages/Icu4C.Runtime</a></li>
@@ -147,7 +147,7 @@ ICU 二进制是 Unicode License v3，再分发保留版权声明即可（包里
 <li style="margin: 6px 0;">源码：<a href="https://github.com/DotNet-AGPL/Icu4C.Runtime" style="color: #576b95; text-decoration: none;">https://github.com/DotNet-AGPL/Icu4C.Runtime</a></li>
 </ul>
 <blockquote style="margin: 16px 0; padding: 10px 14px; border-left: 4px solid #d0d0d0; background: #f7f7f7; color: #666666;">
-<p style="margin: 14px 0;">许可证：项目 AGPL-3.0-only；随包分发的 ICU 为 Unicode License v3。</p>
+<p style="margin: 14px 0;">许可证：项目 Apache-2.0；随包分发的 ICU 为 Unicode License v3。</p>
 </blockquote>
 
 </div>
