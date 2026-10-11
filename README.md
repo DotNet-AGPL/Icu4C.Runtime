@@ -165,8 +165,9 @@ dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg
   `ldd | grep icu` will not show it — rely on the app output and, for AOT, on `readelf -d` showing an
   `$ORIGIN` runpath.
 - CI: `scripts/verify-linux.sh` — static checks (glibc floor, exact inter-library NEEDED names,
-  `$ORIGIN` runpath, no `libstdc++`/`libgcc_s`) plus JIT (linux-x64, linux-musl-x64) and AOT
-  (linux-x64) smoke tests in the official runtime images with the system ICU hidden.
+  `$ORIGIN` runpath, no `libstdc++`/`libgcc_s`), `dlopen` checks on native distributions
+  (AlmaLinux 8 / glibc 2.28 = the supported floor, Debian 12, Alpine 3.20), and JIT/AOT smoke
+  tests on native `debian:12` / `alpine:3.20` with no system ICU present.
 - Windows: `scripts/verify-windows.ps1` — publishes and runs the JIT test in RID-specific and
   portable modes and checks that the app-local MSVC runtime closure is complete; it also runs the
   Native AOT test when the MSVC toolset + Windows SDK are available.
