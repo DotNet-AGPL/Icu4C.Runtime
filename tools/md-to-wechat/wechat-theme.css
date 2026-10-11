@@ -1,0 +1,60 @@
+/* WeChat-friendly article theme.
+   WeChat strips <style> and class names, so this file is inlined onto each element
+   by juice. Keep selectors simple and styles inline-safe. */
+
+.wx-article {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #333333;
+  word-break: break-word;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.wx-article h1 { font-size: 22px; font-weight: bold; margin: 26px 0 14px; color: #1a1a1a; }
+.wx-article h2 {
+  font-size: 19px; font-weight: bold; margin: 24px 0 12px; color: #1a1a1a;
+  padding-left: 10px; border-left: 4px solid #07c160;
+}
+.wx-article h3 { font-size: 17px; font-weight: bold; margin: 20px 0 10px; color: #1a1a1a; }
+.wx-article h4 { font-size: 16px; font-weight: bold; margin: 18px 0 8px; color: #1a1a1a; }
+
+.wx-article p { margin: 14px 0; }
+
+.wx-article blockquote {
+  margin: 16px 0; padding: 10px 14px;
+  border-left: 4px solid #d0d0d0; background: #f7f7f7; color: #666666;
+}
+
+.wx-article ul, .wx-article ol { margin: 12px 0; padding-left: 26px; }
+.wx-article li { margin: 6px 0; }
+
+.wx-article a { color: #576b95; text-decoration: none; }
+
+.wx-article strong { font-weight: bold; color: #1a1a1a; }
+
+.wx-article code {
+  background: #f2f2f2; padding: 2px 5px; border-radius: 3px;
+  font-family: Menlo, Consolas, "Courier New", monospace; font-size: 90%; color: #c7254e;
+}
+
+.wx-article pre {
+  margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6;
+  border-radius: 6px; font-size: 13px; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-all;
+}
+.wx-article pre code {
+  background: transparent; color: inherit; padding: 0;
+  font-family: Menlo, Consolas, "Courier New", monospace; font-size: 13px;
+}
+
+.wx-article table {
+  border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px;
+}
+.wx-article th, .wx-article td {
+  border: 1px solid #e0e0e0; padding: 8px 10px; text-align: left;
+}
+.wx-article th { background: #f7f7f7; font-weight: bold; }
+
+.wx-article hr { border: none; border-top: 1px solid #e0e0e0; margin: 24px 0; }
+
+.wx-article img { max-width: 100%; height: auto; }

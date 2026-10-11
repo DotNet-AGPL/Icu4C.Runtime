@@ -1,0 +1,14 @@
+{
+  "name": "md-to-wechat",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Convert a Markdown article into WeChat-compatible HTML (inline styles).",
+  "bin": {
+    "md-to-wechat": "convert.js"
+  },
+  "dependencies": {
+    "juice": "^11.0.1",
+    "marked": "^15.0.7"
+  }
+}

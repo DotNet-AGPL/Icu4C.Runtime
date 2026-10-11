@@ -25,4 +25,5 @@ Thumbs.db
 *.env
 
 ## Node (tools/md-to-wechat)
-node_modules/
+tools/md-to-wechat/node_modules/
+tools/md-to-wechat/package-lock.json
