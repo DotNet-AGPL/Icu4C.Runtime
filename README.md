@@ -101,8 +101,9 @@ Amazon Linux 2/2023, Debian 12, etc. — required glibc is **2.28**, and there i
 ### Linux (musl / Alpine)
 
 The musl libraries have no version floor and no `libstdc++`/`libgcc_s` dependency — they only need
-musl. Note that the official **.NET Alpine images set `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true`**
-by default, so ICU is not used unless you override it:
+musl. (The .NET runtime itself still needs `libstdc++` for **JIT** on musl; the official Alpine
+images provide it. The AOT output needs neither.) Note that the official **.NET Alpine images set
+`DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true`** by default, so ICU is not used unless you override it:
 
 ```dockerfile
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
