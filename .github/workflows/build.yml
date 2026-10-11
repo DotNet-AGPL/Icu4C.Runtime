@@ -171,3 +171,27 @@ jobs:
             exit 1
           fi
           dotnet nuget push nupkg/*.nupkg --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+
+  # Regression guard for the Linux packaging fixes (glibc floor, no C++ runtime deps, exact
+  # inter-library NEEDED + $ORIGIN, musl loading) plus a JIT/AOT smoke test.
+  verify-linux:
+    needs: pack
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Download platform packages
+        uses: actions/download-artifact@v4
+        with:
+          path: nupkg
+          pattern: 'pkg-*'
+          merge-multiple: true
+      - name: Download meta package
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkg-core
+          path: nupkg
+      - name: Verify Linux packages (static + JIT + AOT)
+        run: bash scripts/verify-linux.sh
