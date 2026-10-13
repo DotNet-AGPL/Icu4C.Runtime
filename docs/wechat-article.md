@@ -1,4 +1,4 @@
-# 一行 PackageReference，给 .NET 应用带上完整 ICU（JIT + Native AOT）
+# Icu4C.Runtime：给 .NET 应用带上完整 ICU（JIT + Native AOT）
 
 > 关键词：AppLocal ICU、Native AOT、Alpine/精简容器、跨平台、ARM64
 
