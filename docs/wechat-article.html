@@ -31,7 +31,7 @@ win-x64,  win-arm64,  osx-x64,        osx-arm64
 <p style="margin: 14px 0;">glibc / musl、x64 / arm64、三大操作系统，全覆盖。</p>
 <h2 style="font-size: 19px; font-weight: bold; margin: 24px 0 12px; color: #1a1a1a; padding-left: 10px; border-left: 4px solid #07c160;">三、最快用法：一行搞定</h2>
 <pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-xml" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">&lt;ItemGroup&gt;
-  &lt;PackageReference Include=&quot;Icu4C.Runtime&quot; Version=&quot;77.1.4&quot; /&gt;
+  &lt;PackageReference Include=&quot;Icu4C.Runtime&quot; Version=&quot;77.1.5&quot; /&gt;
 &lt;/ItemGroup&gt;
 </code></pre>
 <p style="margin: 14px 0;">就这一行。<code style="background: #f2f2f2; padding: 2px 5px; border-radius: 3px; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 90%; color: #c7254e;">Icu4C.Runtime</code> 是个 <strong style="font-weight: bold; color: #1a1a1a;">meta 包</strong>：本身不含二进制，而是依赖 8 个<strong style="font-weight: bold; color: #1a1a1a;">平台包</strong>，把对应平台的 ICU 带进来。加上它之后，包会自动：</p>
@@ -51,12 +51,12 @@ win-x64,  win-arm64,  osx-x64,        osx-arm64
 <h2 style="font-size: 19px; font-weight: bold; margin: 24px 0 12px; color: #1a1a1a; padding-left: 10px; border-left: 4px solid #07c160;">五、想省下载？用“平台包”</h2>
 <p style="margin: 14px 0;">meta 包虽然方便，但因为 <strong style="font-weight: bold; color: #1a1a1a;">NuGet 无法按 RID 过滤依赖</strong>，引用它会把 8 个平台包<strong style="font-weight: bold; color: #1a1a1a;">全部还原</strong>（约 120MB）。目标平台明确时，直接引用<strong style="font-weight: bold; color: #1a1a1a;">单个平台包</strong>，只下约 15MB：</p>
 <pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-xml" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">&lt;ItemGroup&gt;
-  &lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.4&quot; /&gt;
+  &lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.5&quot; /&gt;
 &lt;/ItemGroup&gt;
 </code></pre>
 <p style="margin: 14px 0;">多平台就条件引用：</p>
-<pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-xml" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">&lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.4&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;linux-x64&#39;&quot; /&gt;
-&lt;PackageReference Include=&quot;Icu4C.Runtime.win-x64&quot;   Version=&quot;77.1.4&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;win-x64&#39;&quot; /&gt;
+<pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-xml" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">&lt;PackageReference Include=&quot;Icu4C.Runtime.linux-x64&quot; Version=&quot;77.1.5&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;linux-x64&#39;&quot; /&gt;
+&lt;PackageReference Include=&quot;Icu4C.Runtime.win-x64&quot;   Version=&quot;77.1.5&quot; Condition=&quot;&#39;$(RuntimeIdentifier)&#39; == &#39;win-x64&#39;&quot; /&gt;
 </code></pre>
 <table style="border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px;" width="100%">
 <thead>
@@ -101,7 +101,7 @@ Windows 10+ 系统自带 ICU，通常不需要；但如果要<strong style="font
 <li style="margin: 6px 0;">想省下载就用单平台包。</li>
 </ul>
 <p style="margin: 14px 0;"><strong style="font-weight: bold; color: #1a1a1a;">快速开始</strong></p>
-<pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-bash" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">dotnet add package Icu4C.Runtime --version 77.1.4
+<pre style="margin: 16px 0; padding: 12px 14px; background: #282c34; color: #e6e6e6; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all;"><code class="language-bash" style="border-radius: 3px; background: transparent; color: inherit; padding: 0; font-family: Menlo, Consolas, 'Courier New', monospace; font-size: 13px;">dotnet add package Icu4C.Runtime --version 77.1.5
 </code></pre>
 <ul style="margin: 12px 0; padding-left: 26px;">
 <li style="margin: 6px 0;">NuGet：<a href="https://www.nuget.org/packages/Icu4C.Runtime" style="color: #576b95; text-decoration: none;">https://www.nuget.org/packages/Icu4C.Runtime</a></li>

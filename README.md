@@ -34,7 +34,7 @@ Meta (one reference; works on every RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.4" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.5" />
 </ItemGroup>
 ```
 
@@ -42,7 +42,7 @@ Single platform (smaller restore, known target RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.5" />
 </ItemGroup>
 ```
 
@@ -50,8 +50,8 @@ For several RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.4" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.5" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.5" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -178,7 +178,7 @@ Package version is `{icu-major}.{icu-minor}.{revision}` — the first two parts 
 the third is the packaging revision (starts at 1):
 
 - `77.1.1` — first release for ICU 77.1
-- `77.1.2`, `77.1.3`, `77.1.4`, … — bugfix / repack releases of the **same** ICU 77.1
+- `77.1.2`, `77.1.3`, `77.1.4`, `77.1.5`, … — bugfix / repack releases of the **same** ICU 77.1
 
 The version is defined once in `Directory.Build.props` as `<IcuPackageVersion>`; all packages and the
 test projects consume it.
