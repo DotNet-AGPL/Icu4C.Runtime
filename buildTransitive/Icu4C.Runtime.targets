@@ -33,10 +33,18 @@
   </Target>
 
   <!-- For AOT the natives are provided by the platform packages and copied to the publish root
-       by the SDK; only the rpath needs to be injected here. -->
-  <ItemGroup Condition="'$(PublishAot)' == 'true'">
-    <LinkerArg Include="-Wl,-rpath,'$ORIGIN'" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-    <LinkerArg Include="-Wl,-rpath,'@executable_path'" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+       by the SDK; only the rpath needs to be injected here. Decide by TARGET RID (not host OS):
+       cross-compiling (e.g. Windows -> linux-x64 with PublishAotCross) must still get $ORIGIN.
+       The quoting depends on the HOST shell: Windows (cmd) keeps single quotes literally, while
+       Unix (sh) would expand an unquoted $ORIGIN. -->
+  <ItemGroup Condition="'$(PublishAot)' == 'true' and $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('linux-'))">
+    <!-- Whole argument quoted: under sh this keeps $ORIGIN literal (no expansion), and the
+         PublishAotCross clang wrapper translates '-Wl,-rpath,$ORIGIN' to the unquoted form for Zig. -->
+    <LinkerArg Include="'-Wl,-rpath,$ORIGIN'" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(PublishAot)' == 'true' and $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('osx-'))">
+    <LinkerArg Include="-Wl,-rpath,@executable_path" />
   </ItemGroup>
 
 </Project>

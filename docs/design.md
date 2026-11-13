@@ -76,12 +76,12 @@ Icu4C.Runtime/
 
 ### 5.1 meta：`buildTransitive/Icu4C.Runtime.targets`
 - 求值期注入 `RuntimeHostConfigurationOption System.Globalization.AppLocalIcu = 77.1`、`UseNls=false`；`InvariantGlobalization` 仅在未设置时置 false。
-- AOT：注入 rpath（原生库由 SDK 从平台包自动复制到发布根）。
+- AOT：注入 rpath（原生库由 SDK 从平台包自动复制到发布根）。rpath **按目标 RID 注入**（而非宿主 OS），因此 Windows 宿主交叉编译到 Linux（`PublishAotCross.Tools`）也能正确得到 `$ORIGIN`。
 - 告警：`ICU4C001`（RID 未覆盖）、`ICU4C003`（InvariantGlobalization=true）。
 
 ### 5.2 平台包：`build/Icu4C.Runtime.<rid>.targets`
 - `build/` 资产**仅对直接引用生效**，不被 meta 传递导入 → 不会因 8 个平台包同时存在而重复注入/告警。
-- 仅当 `$(RuntimeIdentifier) == <rid>` 时注入 `AppLocalIcu`；AOT 时把本包 native 复制到发布根 + rpath。
+- 仅当 `$(RuntimeIdentifier) == <rid>` 时注入 `AppLocalIcu`；AOT 时把本包 native 复制到发布根 + rpath（rpath 形式按目标 RID 决定：`linux-*` → `$ORIGIN`，`osx-*` → `@executable_path`，`win-*` 不需要）。
 - 其它 RID 时**静默**（no-op）。
 
 ### 5.3 告警
@@ -177,6 +177,8 @@ Icu4C.Runtime/
 - Linux(glibc) 在 **AlmaLinux 8（glibc 2.28）** 基线构建：要求 glibc ≥2.28，覆盖 Debian 11-12、Ubuntu 20.04+、RHEL/Alma/Rocky 8-9、Amazon Linux 2/2023。
 - Linux 均 `-static-libstdc++ -static-libgcc`（去除 `libstdc++`/`libgcc_s` 依赖）；并用 `patchelf` 让库间依赖引用**精确文件名** + `$ORIGIN` rpath（musl 不做 SONAME 匹配，否则报 `Failed to load app-local ICU`）。
 - Alpine 官方 .NET 镜像默认 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true`，需覆盖为 `false` 才会启用 ICU。
+- AOT 的 rpath 必须按**目标 RID** 判断（`$([MSBuild]::IsOSPlatform(...))` 判的是宿主；Windows 宿主交叉编译到 Linux 时会漏注入）。Linux 的 `$ORIGIN` 用**整个参数单引号**形式 `'-Wl,-rpath,$ORIGIN'`：原生 `sh` 下 `$` 不展开，PublishAotCross 的 clang wrapper 会把它翻译成无引号形式交给 Zig。
+- musl 交叉（Zig 的 `*-linux-musl`）产物是**全静态**（无 dynamic section）→ 无法 `dlopen` → AppLocalIcu 不适用；musl 请用**原生 Alpine 构建**。
 - 许可：项目 Apache-2.0；ICU 二进制为 Unicode-3.0，再分发须保留声明；Windows 包内置的 MS VC++ 运行库遵循微软许可（见 `THIRD-PARTY-NOTICES.md`）。
 
 ---

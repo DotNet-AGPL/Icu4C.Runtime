@@ -264,6 +264,7 @@ docker run --rm -v "$PWD/aot:/app" -w /app --entrypoint sh alpine:3.20 -c './App
 - [ ] **musl**：库间 `NEEDED` = **精确文件名** + `RUNPATH=$ORIGIN`；在**裸 `alpine`** 上 `dlopen` 通过。
 - [ ] **Alpine**：文档写明需 `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false`。
 - [ ] **回归防护**：CI 里跑静态检查（地板/NEEDED/rpath）+ 原生发行版 `dlopen` + JIT/AOT 冒烟。
+- [ ] **交叉编译（Windows→Linux）**：rpath 按**目标 RID** 注入；产物 `RUNPATH=$ORIGIN`（不是 `'$ORIGIN'`）。
 
 ---
 
@@ -274,3 +275,40 @@ docker run --rm -v "$PWD/aot:/app" -w /app --entrypoint sh alpine:3.20 -c './App
 3. **跨库依赖用精确文件名 + `$ORIGIN`**，别赌加载器的 SONAME 匹配（musl 不赌）。
 4. **验证要在“原生且干净”的发行版上做**，最低地板发行版最能暴露问题。
 5. **把上面这些做成 CI 的静态+运行时冒烟**，否则下一个平台会再踩一次。
+
+---
+
+## 10. 附：交叉编译（Windows → Linux）的 rpath 坑
+
+用 `PublishAotCross.Tools`（Zig）在 Windows 上交叉编译 Linux AOT 时，有两个坑。
+
+### 10.1 注入条件不能看宿主 OS
+
+```xml
+<!-- 错误：交叉编译时宿主是 Windows，永远不会为 Linux 注入 -->
+<LinkerArg Include="..." Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+
+<!-- 正确：按目标 RID 判断 -->
+<ItemGroup Condition="'$(PublishAot)' == 'true' and $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('linux-'))">
+  <LinkerArg Include="'-Wl,-rpath,$ORIGIN'" />
+</ItemGroup>
+```
+
+漏注入的后果：产物 `readelf -d` **无 `RUNPATH`** → 运行时
+`Failed to load app-local ICU: libicudata.so.77.1` → `FailFast`。
+
+### 10.2 引号形式（关键）
+
+- 原生 Linux（MSBuild `Exec` 走 `/bin/sh -c`）：`-Wl,-rpath,'$ORIGIN'` 与 `'-Wl,-rpath,$ORIGIN'` 等价（单引号内 `$` 不展开）。
+- Windows 交叉（`cmd` → PowerShell → Zig wrapper）：**单引号是字面量**。
+  若只给值加引号（`-Wl,-rpath,'$ORIGIN'`），引号会进 lld → `RUNPATH='$ORIGIN'`（坏）。
+- **通用写法：整个参数加单引号** `'-Wl,-rpath,$ORIGIN'`。
+  - `sh` 下 `$` 不展开 → 正确；
+  - `PublishAotCross` 的 `clang.ps1` 会把它翻译成 `-Wl,-rpath,$ORIGIN` 交给 Zig → 正确。
+
+验证：交叉产物 `readelf -d` 必须是 `RUNPATH=$ORIGIN`（**不带引号**）。
+
+### 10.3 musl 交叉的限制
+
+Zig 的 `*-linux-musl` 产物是**全静态**（无 dynamic section、无 INTERP）→ **无法 `dlopen`**。
+因此“交叉到 musl + AppLocalIcu”不成立；musl 请用**原生 Alpine 构建**（动态链接，`$ORIGIN` 有效）。

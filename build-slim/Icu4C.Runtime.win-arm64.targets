@@ -27,9 +27,6 @@
           Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' == 'win-arm64'">
-    <LinkerArg Include="-Wl,-rpath,'$ORIGIN'" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-    <LinkerArg Include="-Wl,-rpath,'@executable_path'" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
-  </ItemGroup>
+  <!-- Windows does not need an rpath (the loader searches the application directory). -->
 
 </Project>

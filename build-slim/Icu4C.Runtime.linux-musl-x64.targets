@@ -28,8 +28,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' == 'linux-musl-x64'">
-    <LinkerArg Include="-Wl,-rpath,'$ORIGIN'" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-    <LinkerArg Include="-Wl,-rpath,'@executable_path'" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+    <LinkerArg Include="'-Wl,-rpath,$ORIGIN'" />
   </ItemGroup>
 
 </Project>
