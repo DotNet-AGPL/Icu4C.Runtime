@@ -32,7 +32,7 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $OutDir   = Join-Path $RepoRoot "runtimes/$Rid/native"
 
 $IcuMajor = ($IcuVersion -split '\.')[0]
-$Tag      = "release-" + ($IcuVersion -replace '\.', '-')
+$Tag      = "release-$IcuVersion"
 $Asset    = "icu4c-$IcuVersion-sources.tgz"
 $GhPath   = "unicode-org/icu/releases/download/$Tag/$Asset"
 

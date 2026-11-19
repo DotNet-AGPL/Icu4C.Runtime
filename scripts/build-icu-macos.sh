@@ -31,7 +31,7 @@ OUT_DIR="${REPO_ROOT}/runtimes/${RID}/native"
 
 ICU_GH_PROXY="${ICU_GH_PROXY:-}"
 ICU_MAJOR="${ICU_VERSION%%.*}"
-TAG="release-$(echo "${ICU_VERSION}" | tr '.' '-')"
+TAG="release-${ICU_VERSION}"
 ASSET="icu4c-${ICU_VERSION}-sources.tgz"
 GH_PATH="unicode-org/icu/releases/download/${TAG}/${ASSET}"
 if [ -z "${ICU_GH_PROXY}" ] || [ "${ICU_GH_PROXY}" = "-" ]; then
