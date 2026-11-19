@@ -75,7 +75,7 @@ Icu4C.Runtime/
 ## 5. targets 设计
 
 ### 5.1 meta：`buildTransitive/Icu4C.Runtime.targets`
-- 求值期注入 `RuntimeHostConfigurationOption System.Globalization.AppLocalIcu = 78.3`、`UseNls=false`；`InvariantGlobalization` 仅在未设置时置 false。
+- 求值期注入 `RuntimeHostConfigurationOption System.Globalization.AppLocalIcu = 79.1`、`UseNls=false`；`InvariantGlobalization` 仅在未设置时置 false。
 - AOT：注入 rpath（原生库由 SDK 从平台包自动复制到发布根）。rpath **按目标 RID 注入**（而非宿主 OS），因此 Windows 宿主交叉编译到 Linux（`PublishAotCross.Tools`）也能正确得到 `$ORIGIN`。
 - 告警：`ICU4C001`（RID 未覆盖）、`ICU4C003`（InvariantGlobalization=true）。
 
@@ -149,9 +149,9 @@ Icu4C.Runtime/
 
 ## 9. 版本方案
 
-- 包版本：`{icu-major}.{icu-minor}.{revision}`，如 `78.3.1`、`78.3.2`（前两段对应 ICU 版本，第三段为打包修订，从 1 开始）。
+- 包版本：`{icu-major}.{icu-minor}.{revision}`，如 `79.1.1`、`79.1.2`（前两段对应 ICU 版本，第三段为打包修订，从 1 开始）。
 - 定义于 `Directory.Build.props` 的 `<IcuPackageVersion>`，包与测试项目共用。
-- ICU 共享库自身版本为 `78.3`（`libicu*.so.78.3` 等），**包版本不改变库文件名**。
+- ICU 共享库自身版本为 `79.1`（`libicu*.so.79.1` 等），**包版本不改变库文件名**。
 - ICU 版本（`_IcuVersion`，用于 `AppLocalIcu`）与包版本相互独立。
 
 ---

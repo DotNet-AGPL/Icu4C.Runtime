@@ -72,7 +72,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .icu-cache
-          key: icu-src-${{ runner.os }}-78.3
+          key: icu-src-${{ runner.os }}-79.1
 
       - name: Build ICU (Linux, glibc)
         if: matrix.kind == 'linux-glibc'
@@ -94,7 +94,7 @@ jobs:
               command -v patchelf
               source /opt/rh/gcc-toolset-13/enable
               gcc --version | head -1
-              bash ./scripts/build-icu-linux.sh 78.3 ${{ matrix.rid }}
+              bash ./scripts/build-icu-linux.sh 79.1 ${{ matrix.rid }}
             "
 
       - name: Build ICU (Linux, musl)
@@ -104,17 +104,17 @@ jobs:
             -e ICU_GH_PROXY=- -e ICU_CACHE_DIR=/work/.icu-cache \
             ${{ matrix.container }} sh -c "
               apk add --no-cache build-base curl python3 bash linux-headers patchelf &&
-              bash ./scripts/build-icu-linux.sh 78.3 ${{ matrix.rid }}
+              bash ./scripts/build-icu-linux.sh 79.1 ${{ matrix.rid }}
             "
 
       - name: Build ICU (Windows)
         if: matrix.kind == 'win'
         shell: pwsh
-        run: ./scripts/build-icu-windows.ps1 78.3 ${{ matrix.rid }}
+        run: ./scripts/build-icu-windows.ps1 79.1 ${{ matrix.rid }}
 
       - name: Build ICU (macOS)
         if: matrix.kind == 'osx'
-        run: bash ./scripts/build-icu-macos.sh 78.3 ${{ matrix.rid }}
+        run: bash ./scripts/build-icu-macos.sh 79.1 ${{ matrix.rid }}
 
       - uses: actions/setup-dotnet@v4
         with:

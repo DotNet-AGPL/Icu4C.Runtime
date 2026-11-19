@@ -23,7 +23,7 @@ NativeLibrary.TryLoad("icuuc<ver>.dll", typeof(object).Assembly,
 ```csharp
 dlopen("libicuuc.so.<ver>", ...)   // 先加载 libicudata，再 libicuuc、libicui18n
 ```
-- 按**精确文件名**加载（版本 `78.3` → `libicuuc.so.78.3`）。
+- 按**精确文件名**加载（版本 `79.1` → `libicuuc.so.79.1`）。
 - 搜索「应用目录」；**依赖**（该 `.so` 的 `NEEDED`）按 `RPATH/RUNPATH`、`LD_LIBRARY_PATH` 等常规规则解析。
 
 ### 推论（贯穿全文）
@@ -37,9 +37,9 @@ dlopen("libicuuc.so.<ver>", ...)   // 先加载 libicudata，再 libicuuc、libi
 
 ### 症状
 ```
-Process terminated. Failed to load app-local ICU: icuuc78.3.dll
+Process terminated. Failed to load app-local ICU: icuuc79.1.dll
 ```
-或加载 `icuuc78.dll` 时 `0xC0000005`（访问冲突）在 `GlobalizationMode.InitICUFunctions`。
+或加载 `icuuc79.dll` 时 `0xC0000005`（访问冲突）在 `GlobalizationMode.InitICUFunctions`。
 
 ### 根因
 - 用 MSVC 以 **`/MD`（动态 CRT）** 构建的 DLL 会 `IMPORT`：
@@ -82,7 +82,7 @@ Process terminated. Failed to load app-local ICU: icuuc78.3.dll
 
 ### 症状
 ```
-Failed to load app-local ICU: libicuuc.so.78.3
+Failed to load app-local ICU: libicuuc.so.79.1
 # 直接 dlopen 时可见：version `GLIBC_2.38' not found
 ```
 
@@ -94,7 +94,7 @@ Failed to load app-local ICU: libicuuc.so.78.3
 
 ### 诊断（确定性）
 ```bash
-readelf -V libicuuc.so.78.3 | sed -n '/Version needs section/,/^$/p'
+readelf -V libicuuc.so.79.1 | sed -n '/Version needs section/,/^$/p'
 ```
 看 `libc.so.6` / `libm.so.6` 需要的最高 `GLIBC_2.x`。
 
@@ -105,7 +105,7 @@ readelf -V libicuuc.so.78.3 | sed -n '/Version needs section/,/^$/p'
     dnf install -y gcc-toolset-13-gcc-c++ make curl
     dnf install -y patchelf || { dnf install -y epel-release && dnf install -y patchelf; }
     source /opt/rh/gcc-toolset-13/enable
-    ./scripts/build-icu-linux.sh 78.3 linux-x64
+    ./scripts/build-icu-linux.sh 79.1 linux-x64
   '
   ```
 - 备选基线：`debian:11`（2.31）、`ubuntu:20.04`（2.31）、`manylinux_2_28`（2.28）。
@@ -141,7 +141,7 @@ C/C++ 原生库默认为 **`/MD` 等价物**：动态链接 `libstdc++.so.6`（�
 
 ### 回归验证
 ```bash
-readelf -d libicuuc.so.78.3 | grep -E 'NEEDED.*(libstdc\+\+|libgcc_s)' && echo "仍有 C++ 运行库依赖"
+readelf -d libicuuc.so.79.1 | grep -E 'NEEDED.*(libstdc\+\+|libgcc_s)' && echo "仍有 C++ 运行库依赖"
 ```
 
 ---
@@ -151,21 +151,21 @@ readelf -d libicuuc.so.78.3 | grep -E 'NEEDED.*(libstdc\+\+|libgcc_s)' && echo "
 ### 症状
 - **glibc 正常，musl（Alpine）加载失败**：
   ```
-  Failed to load app-local ICU: libicuuc.so.78.3
+  Failed to load app-local ICU: libicuuc.so.79.1
   ```
 
 ### 根因
-- 构建产物：文件名是 `libicuuc.so.78.3`，但其 `SONAME` 是 `libicuuc.so.78`；
-  `libicuuc` 的 `NEEDED` 因此写作 **`libicudata.so.78`**（major）。
-- 而包里**只有** `libicudata.so.78.3`（没有 `.so.78`）。
-- **glibc** 靠“`AppLocalIcu` 先 `dlopen` 了 `libicudata.so.78.3`，按 SONAME 注册”从而解析成功；
-- **musl 不做这种“已加载库的 SONAME 匹配”** → 找不到 `libicudata.so.78` → `dlopen` 失败。
+- 构建产物：文件名是 `libicuuc.so.79.1`，但其 `SONAME` 是 `libicuuc.so.79`；
+  `libicuuc` 的 `NEEDED` 因此写作 **`libicudata.so.79`**（major）。
+- 而包里**只有** `libicudata.so.79.1`（没有 `.so.79`）。
+- **glibc** 靠“`AppLocalIcu` 先 `dlopen` 了 `libicudata.so.79.1`，按 SONAME 注册”从而解析成功；
+- **musl 不做这种“已加载库的 SONAME 匹配”** → 找不到 `libicudata.so.79` → `dlopen` 失败。
 
 ### 解决方案：`patchelf`
 把库间 `NEEDED` 改成**精确文件名**，并加 `$ORIGIN`：
 ```bash
 for lib in libicuuc libicui18n libicudata; do
-  f="runtimes/$rid/native/${lib}.so.${VER}"        # 例：.so.78.3
+  f="runtimes/$rid/native/${lib}.so.${VER}"        # 例：.so.79.1
   patchelf --set-soname "${lib}.so.${VER}" "$f"
   patchelf --replace-needed "libicudata.so.${MAJOR}" "libicudata.so.${VER}" "$f" || true
   patchelf --replace-needed "libicuuc.so.${MAJOR}"   "libicuuc.so.${VER}"   "$f" || true
@@ -176,8 +176,8 @@ done
 
 ### 回归验证
 ```bash
-readelf -d libicuuc.so.78.3 | grep -E 'NEEDED|RUNPATH'
-# 期望：NEEDED 指向 libicudata.so.78.3（精确名）；RUNPATH=$ORIGIN
+readelf -d libicuuc.so.79.1 | grep -E 'NEEDED|RUNPATH'
+# 期望：NEEDED 指向 libicudata.so.79.1（精确名）；RUNPATH=$ORIGIN
 ```
 再在**裸 `alpine:3.20`** 里 `dlopen` 验证。
 
@@ -216,7 +216,7 @@ libSystem.Native.so   -> libc.musl                    (纯 C)
 ### 7.1 Windows：导入闭包
 ```powershell
 $runtime = 'msvcp140','msvcp140_1','msvcp140_2','msvcp140_atomic_wait','msvcp140_codecvt_ids','vcruntime140','vcruntime140_1'
-foreach ($f in 'icuuc78.dll','icuin78.dll') {
+foreach ($f in 'icuuc79.dll','icuin79.dll') {
   $a = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($f)).ToLower()
   foreach ($r in $runtime) { if ($a -match "$r\.dll" -and -not (Test-Path "$r.dll")) { "MISSING: $f -> $r.dll" } }
 }
@@ -224,8 +224,8 @@ foreach ($f in 'icuuc78.dll','icuin78.dll') {
 
 ### 7.2 Linux：地板 / NEEDED / rpath
 ```bash
-readelf -V  libicuuc.so.78.3 | grep -oE 'GLIBC_2\.[0-9]+' | sort -uV | tail -1   # 最高 glibc 需求
-readelf -d  libicuuc.so.78.3 | grep -E 'NEEDED|RUNPATH'
+readelf -V  libicuuc.so.79.1 | grep -oE 'GLIBC_2\.[0-9]+' | sort -uV | tail -1   # 最高 glibc 需求
+readelf -d  libicuuc.so.79.1 | grep -E 'NEEDED|RUNPATH'
 ```
 
 ### 7.3 原生发行版 dlopen（不经 .NET，最干净）
@@ -239,7 +239,7 @@ print("dlopen OK")
 ```
 ```bash
 docker run --rm -v "$PWD:/repo:ro" -v "$PWD/native:/libs:ro" alpine:3.20 \
-  sh -c 'apk add --no-cache python3 >/dev/null; python3 /repo/dlopen-check.py /libs 78.3'
+  sh -c 'apk add --no-cache python3 >/dev/null; python3 /repo/dlopen-check.py /libs 79.1'
 ```
 
 ### 7.4 JIT / AOT 冒烟（在原生发行版上）
@@ -295,7 +295,7 @@ docker run --rm -v "$PWD/aot:/app" -w /app --entrypoint sh alpine:3.20 -c './App
 ```
 
 漏注入的后果：产物 `readelf -d` **无 `RUNPATH`** → 运行时
-`Failed to load app-local ICU: libicudata.so.78.3` → `FailFast`。
+`Failed to load app-local ICU: libicudata.so.79.1` → `FailFast`。
 
 ### 10.2 引号形式（关键）
 

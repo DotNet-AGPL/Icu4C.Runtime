@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <_IcuPackageRid>linux-musl-x64</_IcuPackageRid>
-    <_IcuVersion Condition="'$(_IcuVersion)' == ''">78.3</_IcuVersion>
+    <_IcuVersion Condition="'$(_IcuVersion)' == ''">79.1</_IcuVersion>
     <_IcuNativeDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..', 'runtimes', 'linux-musl-x64', 'native'))</_IcuNativeDir>
   </PropertyGroup>
 

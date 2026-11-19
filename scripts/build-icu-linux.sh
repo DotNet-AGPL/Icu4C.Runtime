@@ -4,7 +4,7 @@
 # libraries under runtimes/<rid>/native/.
 #
 # Usage: build-icu-linux.sh [ICU_VERSION] [RID]
-#   ICU_VERSION  e.g. 78.3           (default: 78.3)
+#   ICU_VERSION  e.g. 79.1           (default: 79.1)
 #   RID          linux-x64 | linux-arm64 | linux-musl-x64 | linux-musl-arm64
 #
 # Environment:
@@ -17,7 +17,7 @@
 #
 set -euo pipefail
 
-ICU_VERSION="${1:-78.3}"
+ICU_VERSION="${1:-79.1}"
 RID="${2:-linux-x64}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"

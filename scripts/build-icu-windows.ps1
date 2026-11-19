@@ -12,17 +12,17 @@
   VC++ Redistributable installed. These files are redistributable with an application.
 
 .PARAMETER IcuVersion
-  ICU version, e.g. 78.3 (default).
+  ICU version, e.g. 79.1 (default).
 
 .PARAMETER Rid
   win-x64 | win-arm64 (default: win-x64).
 
 .EXAMPLE
-  ./build-icu-windows.ps1 78.3 win-x64
+  ./build-icu-windows.ps1 79.1 win-x64
 #>
 [CmdletBinding()]
 param(
-  [string]$IcuVersion = "78.3",
+  [string]$IcuVersion = "79.1",
   [string]$Rid = "win-x64"
 )
 

@@ -4,7 +4,7 @@
 # Must be run on macOS.
 #
 # Usage: build-icu-macos.sh [ICU_VERSION] [RID]
-#   ICU_VERSION  e.g. 78.3    (default: 78.3)
+#   ICU_VERSION  e.g. 79.1    (default: 79.1)
 #   RID          osx-x64 | osx-arm64  (default: osx-arm64)
 #
 # Environment:
@@ -23,7 +23,7 @@ if [ "$(uname -s)" != "Darwin" ]; then
   exit 1
 fi
 
-ICU_VERSION="${1:-78.3}"
+ICU_VERSION="${1:-79.1}"
 RID="${2:-osx-arm64}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"

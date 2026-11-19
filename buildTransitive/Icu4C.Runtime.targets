@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <_IcuSupportedRids>linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;win-x64;win-arm64;osx-x64;osx-arm64</_IcuSupportedRids>
-    <_IcuVersion Condition="'$(_IcuVersion)' == ''">78.3</_IcuVersion>
+    <_IcuVersion Condition="'$(_IcuVersion)' == ''">79.1</_IcuVersion>
   </PropertyGroup>
 
   <!-- Inject AppLocalIcu at evaluation time: effective for JIT and Native AOT. -->

@@ -48,18 +48,18 @@ Do not reference the meta package **and** a platform package for the same RID.
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="78.3.1" />
+  <PackageReference Include="Icu4C.Runtime" Version="79.1.1" />
 </ItemGroup>
 ```
 
 No code changes are required. The package targets:
 
-- inject `System.Globalization.AppLocalIcu` = the packaged ICU version (`78.3`),
+- inject `System.Globalization.AppLocalIcu` = the packaged ICU version (`79.1`),
 - set `System.Globalization.UseNls=false`,
 - set `InvariantGlobalization=false` **only when you have not set it yourself**,
 - for `PublishAot=true`, add an rpath (`$ORIGIN` on Linux, `@executable_path` on macOS).
 
-The package ships ICU 78.3 (`libicu*.so.78.3`, `libicu*.78.3.dylib`, `icuuc78.dll`).
+The package ships ICU 79.1 (`libicu*.so.79.1`, `libicu*.79.1.dylib`, `icuuc79.dll`).
 
 ## Rules that matter
 
@@ -89,22 +89,22 @@ The package ships ICU 78.3 (`libicu*.so.78.3`, `libicu*.78.3.dylib`, `icuuc78.dl
 
 ```bash
 dotnet publish -c Release -r linux-x64
-ls bin/Release/net*/linux-x64/publish | grep -i icu   # libicuuc/i18n/data.so.78.3
+ls bin/Release/net*/linux-x64/publish | grep -i icu   # libicuuc/i18n/data.so.79.1
 readelf -d bin/Release/net*/linux-x64/publish/<app> | grep -E 'RUNPATH|RPATH'
 # expected: RUNPATH $ORIGIN   (no quotes)
 bin/Release/net*/linux-x64/publish/<app> --help
 ```
 
-On Windows, the publish folder must contain `icuuc78.dll`, `icuin78.dll`, `icudt78.dll` plus the
+On Windows, the publish folder must contain `icuuc79.dll`, `icuin79.dll`, `icudt79.dll` plus the
 app-local `msvcp140*.dll` / `vcruntime140*.dll` staged by the package.
 
 ## Troubleshooting
 
 | Symptom | Cause / fix |
 |---|---|
-| `Failed to load app-local ICU: libicudata.so.78.3` | Natives not next to the exe, or missing rpath. Check the publish root and `RUNPATH=$ORIGIN`. |
+| `Failed to load app-local ICU: libicudata.so.79.1` | Natives next to the exe missing, or rpath missing. Check the publish root and `RUNPATH=$ORIGIN`. |
 | `Couldn't find a valid ICU package installed` | `AppLocalIcu` was not injected: wrong RID, package not referenced for that RID, or an old restored version. |
-| `Failed to load app-local ICU: icuuc78.dll` | Missing/wrong-architecture DLLs, or the MSVC runtime DLLs were removed from the output. |
+| `Failed to load app-local ICU: icuuc79.dll` | Missing/wrong-architecture DLLs, or the MSVC runtime DLLs were removed from the output. |
 | `ICU4C003` warning | Remove `<InvariantGlobalization>true</InvariantGlobalization>`. |
 | `ICU4C001` warning | The target RID has no platform package; use the meta package or add the matching platform package. |
 | App runs but cultures behave invariantly | `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true` is set in the environment/image. |
