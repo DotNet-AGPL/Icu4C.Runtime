@@ -139,7 +139,7 @@ Icu4C.Runtime/
 | linux-musl-arm64 | ubuntu-24.04-arm | alpine 容器 |
 | win-x64 / win-arm64 | windows-2022 | MSVC（ARM64 两段式） |
 | osx-x64 | macos-15-intel | 原生 |
-| osx-arm64 | macos-14 | 原生 |
+| osx-arm64 | macos-15 | 原生 |
 
 - 每个 RID 作业构建 native → 打**平台包** → 上传 `pkg-<rid>`。
 - `pack` 作业：下载 `pkg-*` 到本地 feed → 还原并打 **meta** → 上传 `nupkg-core`。
