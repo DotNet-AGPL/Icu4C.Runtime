@@ -39,7 +39,7 @@ glibc / musl、x64 / arm64、三大操作系统，全覆盖。
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.5" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.6" />
 </ItemGroup>
 ```
 
@@ -65,15 +65,15 @@ meta 包虽然方便，但因为 **NuGet 无法按 RID 过滤依赖**，引用�
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.5" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.6" />
 </ItemGroup>
 ```
 
 多平台就条件引用：
 
 ```xml
-<PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.5" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-<PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.5" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+<PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.6" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+<PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.6" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 ```
 
 | 环节 | 结果 |
@@ -116,7 +116,7 @@ Windows 10+ 系统自带 ICU，通常不需要；但如果要**锁定 ICU 版本
 **快速开始**
 
 ```bash
-dotnet add package Icu4C.Runtime --version 77.1.5
+dotnet add package Icu4C.Runtime --version 77.1.6
 ```
 
 - NuGet：https://www.nuget.org/packages/Icu4C.Runtime

@@ -34,7 +34,7 @@ Meta (one reference; works on every RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.5" />
+  <PackageReference Include="Icu4C.Runtime" Version="77.1.6" />
 </ItemGroup>
 ```
 
@@ -42,7 +42,7 @@ Single platform (smaller restore, known target RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.5" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.6" />
 </ItemGroup>
 ```
 
@@ -50,8 +50,8 @@ For several RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.5" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.5" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.6" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.6" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -70,6 +70,22 @@ mechanism (deps.json) and are resolved at runtime.
 
 The natives are copied to the publish root by the SDK; the injected rpath plus
 `System.Globalization.AppLocalIcu` (embedded into the executable by ILC) let the loader find them.
+
+## Agent skill (SKILL.md)
+
+Every package ships an [Agent Skill](https://agentskills.io/specification) at
+`skills/icu4c-runtime/SKILL.md` (both the meta package and each platform package). Agents can
+discover it from the restored package:
+
+```bash
+dotnet-inspect package Icu4C.Runtime -S Skills     # or: dotnet-inspect project <csproj> -S Skills
+dotnet-package-skills install                      # copies it to .agents/skills
+ls ~/.nuget/packages/icu4c.runtime/*/skills/        # no extra tooling needed
+```
+
+The skill is frozen inside each `.nupkg`, so upgrade the package to get updated guidance. It
+describes package choice, AppLocalIcu wiring, `InvariantGlobalization` conflicts, the AOT rpath and
+cross-compilation limits.
 
 ## Download & output size
 
@@ -178,7 +194,7 @@ Package version is `{icu-major}.{icu-minor}.{revision}` — the first two parts 
 the third is the packaging revision (starts at 1):
 
 - `77.1.1` — first release for ICU 77.1
-- `77.1.2`, `77.1.3`, `77.1.4`, `77.1.5`, … — bugfix / repack releases of the **same** ICU 77.1
+- `77.1.2`, `77.1.3`, `77.1.4`, `77.1.5`, `77.1.6`, … — bugfix / repack releases of the **same** ICU 77.1
 
 The version is defined once in `Directory.Build.props` as `<IcuPackageVersion>`; all packages and the
 test projects consume it.

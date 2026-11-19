@@ -25,6 +25,7 @@
   <ItemGroup>
     <None Include="../../runtimes/$(IcuRid)/native/**" Pack="true" PackagePath="runtimes/$(IcuRid)/native/" />
     <None Include="../../build-slim/Icu4C.Runtime.$(IcuRid).targets" Pack="true" PackagePath="build/" />
+    <None Include="../../skills/**" Pack="true" PackagePath="skills/" />
     <None Include="../../LICENSE" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE')" />
     <None Include="../../LICENSE-ICU" Pack="true" PackagePath="/" Condition="Exists('../../LICENSE-ICU')" />
     <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="/" Condition="Exists('../../THIRD-PARTY-NOTICES.md')" />

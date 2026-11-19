@@ -104,6 +104,7 @@ Icu4C.Runtime/
   dotnet pack src/Icu4C.Runtime/Icu4C.Runtime.csproj -c Release -o nupkg   # 从仓库本地源 nupkg 还原平台包
   ```
 - 包版本来自 `Directory.Build.props` 的 `<IcuPackageVersion>`。
+- meta 与 8 个平台包均打包 `skills/icu4c-runtime/SKILL.md`（Agent Skill，遵循 agentskills.io 规范）：路径固定为 `skills/<name>/SKILL.md`，`name` 必须与目录名一致；skill 随包版本冻结，供 AI 编码代理在 restore 后从 NuGet 缓存中发现。
 
 ### 产物命名（与 AppLocalIcu 约定一致）
 

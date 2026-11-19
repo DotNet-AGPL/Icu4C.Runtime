@@ -159,6 +159,14 @@ jobs:
       - name: Collect all packages for publishing
         run: cp platform-pkgs/*.nupkg nupkg/ && ls -l nupkg
 
+      - name: Verify bundled agent skill
+        run: |
+          for f in nupkg/*.nupkg; do
+            unzip -l "$f" | grep -q 'skills/icu4c-runtime/SKILL.md' \
+              || { echo "Missing skills/icu4c-runtime/SKILL.md in $f"; exit 1; }
+          done
+          echo "All packages contain the agent skill."
+
       # NuGet publishing is manual: it only runs on a manual workflow_dispatch
       # with the "publish" input enabled, and requires the NUGET_API_KEY secret.
       - name: Publish to NuGet (manual)
