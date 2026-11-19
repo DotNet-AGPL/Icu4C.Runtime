@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Icu4C.Runtime" Version="$(IcuPackageVersion)" />
-    <PackageReference Include="PublishAotCross.Tools" Version="1.0.2.13" PrivateAssets="all" />
+    <PackageReference Include="PublishAotCross.Tools" Version="1.0.2.13" PrivateAssets="all" Condition="'$(UsePublishAotCross)' != 'false'" />
   </ItemGroup>
 
 </Project>
