@@ -85,7 +85,7 @@ dotnet publish tests/IcuAotTest/IcuAotTest.csproj -c Release -r linux-x64 -p:Icu
 
 say "AOT: linux-musl-x64 on alpine:3.20 (native distro)"
 "${ENGINE}" run --rm -v "${PWD}:/work" -w /work --entrypoint sh mcr.microsoft.com/dotnet/sdk:10.0-alpine -c "
-  apk add --no-cache build-base clang lld zlib-dev binutils >/dev/null
+  apk add --no-cache bash build-base clang lld zlib-dev binutils >/dev/null
   dotnet publish tests/IcuAotTest/IcuAotTest.csproj -c Release -r linux-musl-x64 -p:IcuPackageVersion='${VER}' -o pub/ci-aot-musl > /tmp/aot-musl.log 2>&1 || { cat /tmp/aot-musl.log; exit 1; }
 "
 "${ENGINE}" run --rm -v "${PWD}/pub/ci-aot-musl:/app" -w /app --entrypoint sh alpine:3.20 -c './IcuAotTest'
