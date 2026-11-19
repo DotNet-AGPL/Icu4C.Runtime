@@ -78,8 +78,13 @@ dotnet publish tests/IcuJitTest/IcuJitTest.csproj -c Release -r linux-musl-x64 -
   -v "${PWD}/pub/ci-jit-musl:/app" -w /app mcr.microsoft.com/dotnet/runtime:10.0-alpine -c './IcuJitTest'
 
 say "AOT: linux-x64 on debian:12 (native distro)"
-sudo apt-get update -qq
-sudo apt-get install -y -qq clang zlib1g-dev
+# The GitHub runner image already ships clang/zlib headers; only touch apt when they are missing
+# (apt mirrors are occasionally unavailable and would otherwise fail the whole job).
+if ! command -v clang >/dev/null 2>&1 || [ ! -e /usr/include/zlib.h ]; then
+  sudo apt-get update -qq || true
+  sudo apt-get install -y -qq clang zlib1g-dev || true
+fi
+command -v clang >/dev/null || { echo "clang is required for the AOT test"; exit 1; }
 dotnet publish tests/IcuAotTest/IcuAotTest.csproj -c Release -r linux-x64 -p:IcuPackageVersion="${VER}" -o pub/ci-aot-x64 >/dev/null
 "${ENGINE}" run --rm -v "${PWD}/pub/ci-aot-x64:/app" -w /app --entrypoint sh debian:12 -c './IcuAotTest'
 
