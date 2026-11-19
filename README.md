@@ -34,7 +34,7 @@ Meta (one reference; works on every RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.6" />
+  <PackageReference Include="Icu4C.Runtime" Version="78.3.1" />
 </ItemGroup>
 ```
 
@@ -42,7 +42,7 @@ Single platform (smaller restore, known target RID):
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.6" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="78.3.1" />
 </ItemGroup>
 ```
 
@@ -50,8 +50,8 @@ For several RIDs, reference each one conditionally:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="77.1.6" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="77.1.6" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+  <PackageReference Include="Icu4C.Runtime.linux-x64" Version="78.3.1" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  <PackageReference Include="Icu4C.Runtime.win-x64"   Version="78.3.1" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
 </ItemGroup>
 ```
 
@@ -195,12 +195,13 @@ the third is the packaging revision (starts at 1):
 
 - `77.1.1` — first release for ICU 77.1
 - `77.1.2`, `77.1.3`, `77.1.4`, `77.1.5`, `77.1.6`, … — bugfix / repack releases of the **same** ICU 77.1
+- `78.3.1` — first release for ICU 78.3
 
 The version is defined once in `Directory.Build.props` as `<IcuPackageVersion>`; all packages and the
 test projects consume it.
 
-- The ICU shared libraries keep their own version (`77.1` → `libicu*.so.77.1`, `libicu*.77.1.dylib`,
-  `icuuc77.dll`); the package version does not change the `.so`/`.dll` names.
+- The ICU shared libraries keep their own version (`78.3` → `libicu*.so.78.3`, `libicu*.78.3.dylib`,
+  `icuuc78.dll`); the package version does not change the `.so`/`.dll` names.
 - The ICU version used for `AppLocalIcu` is independent: it lives in `_IcuVersion` inside the targets.
 
 ## Building & releasing (CI)

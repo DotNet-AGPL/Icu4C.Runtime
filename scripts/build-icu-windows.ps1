@@ -12,17 +12,17 @@
   VC++ Redistributable installed. These files are redistributable with an application.
 
 .PARAMETER IcuVersion
-  ICU version, e.g. 77.1 (default).
+  ICU version, e.g. 78.3 (default).
 
 .PARAMETER Rid
   win-x64 | win-arm64 (default: win-x64).
 
 .EXAMPLE
-  ./build-icu-windows.ps1 77.1 win-x64
+  ./build-icu-windows.ps1 78.3 win-x64
 #>
 [CmdletBinding()]
 param(
-  [string]$IcuVersion = "77.1",
+  [string]$IcuVersion = "78.3",
   [string]$Rid = "win-x64"
 )
 
@@ -33,7 +33,7 @@ $OutDir   = Join-Path $RepoRoot "runtimes/$Rid/native"
 
 $IcuMajor = ($IcuVersion -split '\.')[0]
 $Tag      = "release-" + ($IcuVersion -replace '\.', '-')
-$Asset    = "icu4c-" + ($IcuVersion -replace '\.', '_') + "-src.tgz"
+$Asset    = "icu4c-$IcuVersion-sources.tgz"
 $GhPath   = "unicode-org/icu/releases/download/$Tag/$Asset"
 
 $Proxy = $env:ICU_GH_PROXY

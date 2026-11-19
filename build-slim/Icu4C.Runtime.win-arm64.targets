@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <_IcuPackageRid>win-arm64</_IcuPackageRid>
-    <_IcuVersion Condition="'$(_IcuVersion)' == ''">77.1</_IcuVersion>
+    <_IcuVersion Condition="'$(_IcuVersion)' == ''">78.3</_IcuVersion>
     <_IcuNativeDir>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..', 'runtimes', 'win-arm64', 'native'))</_IcuNativeDir>
   </PropertyGroup>
 

@@ -33,7 +33,7 @@ param(
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $PubRoot  = Join-Path $RepoRoot "pub"
-$IcuMajor = "77"
+$IcuMajor = "78"
 $MsvcRuntime = @("msvcp140", "msvcp140_1", "msvcp140_2", "msvcp140_atomic_wait",
                  "msvcp140_codecvt_ids", "vcruntime140", "vcruntime140_1")
 

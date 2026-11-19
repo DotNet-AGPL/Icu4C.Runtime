@@ -4,7 +4,7 @@
 # Must be run on macOS.
 #
 # Usage: build-icu-macos.sh [ICU_VERSION] [RID]
-#   ICU_VERSION  e.g. 77.1    (default: 77.1)
+#   ICU_VERSION  e.g. 78.3    (default: 78.3)
 #   RID          osx-x64 | osx-arm64  (default: osx-arm64)
 #
 # Environment:
@@ -23,7 +23,7 @@ if [ "$(uname -s)" != "Darwin" ]; then
   exit 1
 fi
 
-ICU_VERSION="${1:-77.1}"
+ICU_VERSION="${1:-78.3}"
 RID="${2:-osx-arm64}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -32,7 +32,7 @@ OUT_DIR="${REPO_ROOT}/runtimes/${RID}/native"
 ICU_GH_PROXY="${ICU_GH_PROXY:-}"
 ICU_MAJOR="${ICU_VERSION%%.*}"
 TAG="release-$(echo "${ICU_VERSION}" | tr '.' '-')"
-ASSET="icu4c-$(echo "${ICU_VERSION}" | tr '.' '_')-src.tgz"
+ASSET="icu4c-${ICU_VERSION}-sources.tgz"
 GH_PATH="unicode-org/icu/releases/download/${TAG}/${ASSET}"
 if [ -z "${ICU_GH_PROXY}" ] || [ "${ICU_GH_PROXY}" = "-" ]; then
   URL="https://github.com/${GH_PATH}"

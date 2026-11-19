@@ -48,18 +48,18 @@ Do not reference the meta package **and** a platform package for the same RID.
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Icu4C.Runtime" Version="77.1.6" />
+  <PackageReference Include="Icu4C.Runtime" Version="78.3.1" />
 </ItemGroup>
 ```
 
 No code changes are required. The package targets:
 
-- inject `System.Globalization.AppLocalIcu` = the packaged ICU version (`77.1`),
+- inject `System.Globalization.AppLocalIcu` = the packaged ICU version (`78.3`),
 - set `System.Globalization.UseNls=false`,
 - set `InvariantGlobalization=false` **only when you have not set it yourself**,
 - for `PublishAot=true`, add an rpath (`$ORIGIN` on Linux, `@executable_path` on macOS).
 
-The package ships ICU 77.1 (`libicu*.so.77.1`, `libicu*.77.1.dylib`, `icuuc77.dll`).
+The package ships ICU 78.3 (`libicu*.so.78.3`, `libicu*.78.3.dylib`, `icuuc78.dll`).
 
 ## Rules that matter
 
@@ -79,7 +79,7 @@ The package ships ICU 77.1 (`libicu*.so.77.1`, `libicu*.77.1.dylib`, `icuuc77.dl
 
 - The rpath is chosen by **target RID**, not host OS. A Windows host cross-compiling to
   `linux-x64` with `PublishAotCross.Tools` still gets `$ORIGIN`.
-- On package versions before 77.1.5 this was host-based; either upgrade or add the rpath manually:
+- On older package versions this was host-based; upgrade to a current package or add the rpath manually:
   `<LinkerArg Include="-Wl,-rpath,$ORIGIN" />` (do not wrap the value in single quotes; the
   whole-argument form `'-Wl,-rpath,$ORIGIN'` is also valid).
 - Cross-compiling to **musl** with Zig produces a fully static binary (no dynamic section, no
@@ -89,22 +89,22 @@ The package ships ICU 77.1 (`libicu*.so.77.1`, `libicu*.77.1.dylib`, `icuuc77.dl
 
 ```bash
 dotnet publish -c Release -r linux-x64
-ls bin/Release/net*/linux-x64/publish | grep -i icu   # libicuuc/i18n/data.so.77.1
+ls bin/Release/net*/linux-x64/publish | grep -i icu   # libicuuc/i18n/data.so.78.3
 readelf -d bin/Release/net*/linux-x64/publish/<app> | grep -E 'RUNPATH|RPATH'
 # expected: RUNPATH $ORIGIN   (no quotes)
 bin/Release/net*/linux-x64/publish/<app> --help
 ```
 
-On Windows, the publish folder must contain `icuuc77.dll`, `icuin77.dll`, `icudt77.dll` plus the
+On Windows, the publish folder must contain `icuuc78.dll`, `icuin78.dll`, `icudt78.dll` plus the
 app-local `msvcp140*.dll` / `vcruntime140*.dll` staged by the package.
 
 ## Troubleshooting
 
 | Symptom | Cause / fix |
 |---|---|
-| `Failed to load app-local ICU: libicudata.so.77.1` | Natives not next to the exe, or missing rpath. Check the publish root and `RUNPATH=$ORIGIN`. |
+| `Failed to load app-local ICU: libicudata.so.78.3` | Natives not next to the exe, or missing rpath. Check the publish root and `RUNPATH=$ORIGIN`. |
 | `Couldn't find a valid ICU package installed` | `AppLocalIcu` was not injected: wrong RID, package not referenced for that RID, or an old restored version. |
-| `Failed to load app-local ICU: icuuc77.dll` | Missing/wrong-architecture DLLs, or the MSVC runtime DLLs were removed from the output. |
+| `Failed to load app-local ICU: icuuc78.dll` | Missing/wrong-architecture DLLs, or the MSVC runtime DLLs were removed from the output. |
 | `ICU4C003` warning | Remove `<InvariantGlobalization>true</InvariantGlobalization>`. |
 | `ICU4C001` warning | The target RID has no platform package; use the meta package or add the matching platform package. |
 | App runs but cultures behave invariantly | `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true` is set in the environment/image. |
