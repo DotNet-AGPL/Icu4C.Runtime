@@ -90,12 +90,12 @@ cross-compilation limits.
 ## Download & output size
 
 Because NuGet cannot filter dependencies by RID, a project referencing the **meta** package restores
-**all** platform packages (≈119 MB of package downloads, regardless of target RID). What ends up in
+**all** platform packages (≈127 MB of package downloads, regardless of target RID). What ends up in
 the app depends on the publish mode:
 
 | Publish | ICU natives in the output |
 |---|---|
-| `-r <rid>` / Native AOT | only that RID (≈38 MB) |
+| `-r <rid>` / Native AOT | only that RID (≈44 MB) |
 | portable (no `-r`) | all 8 RIDs under `runtimes/<rid>/native/` |
 
 To avoid the extra download, reference the specific `Icu4C.Runtime.<rid>` package instead.
